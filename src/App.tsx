@@ -48,7 +48,7 @@ const App = () => {
 					{/* Drawer Top Content */}
 					<Box sx={{ p: 2 }}>
 						<Typography variant="h6" sx={{ mb: 1 }}>
-							HashChat
+							Paradox
 						</Typography>
 
 						<Typography variant="body2">{` ${Hedera.getNetworkName().toUpperCase()} `}</Typography>
