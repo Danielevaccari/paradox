@@ -1,6 +1,7 @@
 import React from "react";
 import { TopicId, TopicInfo } from "@hashgraph/sdk";
 import { List, ListItem, ListItemText, Button, Typography, Box, Stack } from "@mui/material";
+import { formatConsensusTime } from "../../Utility/date";
 
 type Props = {
 	topics: Array<TopicInfo>;
@@ -24,7 +25,7 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 	);
 
 	return (
-		<Box sx={{ paddingTop: "10px" }}>
+		<Box>
 			<Typography variant="h6" gutterBottom>
 				Topics
 			</Typography>

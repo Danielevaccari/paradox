@@ -12,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import { TransactionView } from "./Views/TransactionsView";
 import { ConfigurationView } from "./Views/ConfigurationView";
 import { Hedera } from "./Hedera/hedera";
-import { AppBar, Toolbar, Grid } from "@mui/material";
 
 const drawerWidth = 200;
 
@@ -32,24 +31,6 @@ const App = () => {
 	return (
 		<BrowserRouter>
 			<Box sx={{ display: "flex" }}>
-				<AppBar sx={{ zIndex: 10_000 }}>
-					<Toolbar>
-						<Grid container spacing={2} alignItems="center" sx={{ width: "100%" }}>
-							<Grid item>
-								<Typography variant="body2">
-									{` ${Hedera.getNetworkName().toUpperCase()} `}
-
-									{process.env.NODE_ENV === "development" && (
-										<Typography variant="caption" color="yellow" fontWeight="bold">
-											Debug Build
-										</Typography>
-									)}
-								</Typography>
-							</Grid>
-						</Grid>
-					</Toolbar>
-				</AppBar>
-
 				<Drawer
 					anchor="left"
 					variant="permanent"
@@ -60,13 +41,23 @@ const App = () => {
 							width: drawerWidth,
 							boxSizing: "border-box",
 							display: "flex",
-							flexDirection: "column", // Make it a vertical flex container
+							flexDirection: "column",
 						},
 					}}
 				>
-					{/* Drawer Content */}
-					<Box sx={{ p: 2, display: "flex", alignItems: "center", gap: 1 }}>
-						<Typography variant="h6">HashChat</Typography>
+					{/* Drawer Top Content */}
+					<Box sx={{ p: 2 }}>
+						<Typography variant="h6" sx={{ mb: 1 }}>
+							HashChat
+						</Typography>
+
+						<Typography variant="body2">{` ${Hedera.getNetworkName().toUpperCase()} `}</Typography>
+
+						{process.env.NODE_ENV === "development" && (
+							<Typography variant="caption" color="yellow" fontWeight="bold">
+								Debug Build
+							</Typography>
+						)}
 					</Box>
 
 					<List>
@@ -95,10 +86,8 @@ const App = () => {
 						</ListItem>
 					</List>
 
-					{/* Spacer to push footer down */}
 					<Box sx={{ flexGrow: 1 }} />
 
-					{/* Bottom Footer */}
 					<Box sx={{ p: 2 }}>
 						<Typography variant="caption" color="text.secondary">
 							© Vaccari Oy
@@ -106,18 +95,15 @@ const App = () => {
 					</Box>
 				</Drawer>
 
-				{/* Main Content */}
 				<Box
 					component="main"
 					sx={{
 						flexGrow: 1,
 						bgcolor: "background.default",
-						height: "100%", // Full height
+						height: "100vh",
 						overflow: "auto",
-						marginTop: "64px", // Shift content below the AppBar
 					}}
 				>
-					{/* Routes */}
 					<Routes>
 						<Route path="/" element={<TopicView />} />
 						<Route path="/transaction" element={<TransactionView />} />

@@ -228,11 +228,13 @@ let TopicView = ({ className }: Props) => {
 
 					{/* Topic list */}
 					{topics.length > 0 && (
-						<TopicList //
-							topics={topics}
-							onSelectTopic={onSelectTopic}
-							onDeleteTopic={onDeleteTopic}
-						/>
+						<Box sx={{ maxHeight: "500px", overflowY: "auto", mt: 2 }}>
+							<TopicList //
+								topics={topics}
+								onSelectTopic={onSelectTopic}
+								onDeleteTopic={onDeleteTopic}
+							/>
+						</Box>
 					)}
 				</Box>
 
