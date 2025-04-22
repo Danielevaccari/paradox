@@ -31,12 +31,10 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 	const [selectedDataType, setSelectedDataType] = React.useState<DataType>(DataType.PLAINTEXT);
 
 	const handleSend = () => {
-		if (messageInput.trim() === "") {
-			return;
-		}
+		if (messageInput.trim() === "") return;
 
 		onCreateTopicMessage(messageInput);
-		setMessageInput(""); // Clear input after sending
+		setMessageInput("");
 	};
 
 	return (
@@ -45,17 +43,16 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 				{topicId.toString() || "No topic selected"}
 			</Typography>
 
-			{/* Message Input */}
+			{/* Message Input and Data Type */}
 			<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, width: "100%" }}>
 				<Box sx={{ display: "flex", gap: 2, flexGrow: 1, maxWidth: 600 }}>
 					<TextField
 						fullWidth
 						variant="standard"
 						value={messageInput}
-						placeholder=" Add new topic message"
+						placeholder="Add new topic message"
 						onChange={event => setMessageInput(event.target.value)}
 					/>
-
 					<Button variant="contained" color="secondary" size="small" onClick={handleSend}>
 						Send
 					</Button>
@@ -84,74 +81,44 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 				{`Topic Messages ${topicMessages.length}`}
 			</Typography>
 
-			<Box
-				sx={{
-					maxHeight: "600px", // or any height that fits your layout
-					overflowY: "auto",
-					pr: 1, // optional padding for scrollbar space
-				}}
-			>
-				<List sx={{ marginBottom: 2 }}>
+			{/* Scrollable Message List */}
+			<Box className="scroll-container">
+				<List sx={{ mb: 2 }}>
 					{Hedera.assembleChunkedMessages(topicMessages)
 						.reverse()
 						.map((msg, index) => {
+							let message = "";
 							const decodedTopicMessage = Hedera.decodeBase64ToString(msg.message);
 
-							let message = "";
-
-							switch (selectedDataType) {
-								case DataType.PLAINTEXT:
-									message = decodedTopicMessage;
-									break;
-								case DataType.JSON: {
-									try {
-										const parsed = JSON.parse(decodedTopicMessage); // Convert string to object
-										const prettyJson = JSON.stringify(parsed, null, 2);
-										message = prettyJson;
-									} catch (error) {
-										alert(error);
-									}
-
-									break;
+							if (selectedDataType === DataType.PLAINTEXT) {
+								message = decodedTopicMessage;
+							} else if (selectedDataType === DataType.JSON) {
+								try {
+									message = JSON.stringify(JSON.parse(decodedTopicMessage), null, 2);
+								} catch (error) {
+									alert(error);
 								}
-								default:
-									break;
 							}
 
-							const topicMessageTimestamp = formatConsensusTime(msg.consensus_timestamp);
-							const topicMessagePayerAccount = msg.payer_account_id;
-
+							const timestamp = formatConsensusTime(msg.consensus_timestamp);
 							return (
 								<ListItem key={index} alignItems="flex-start">
-									<Box
-										sx={{
-											width: "100%",
-											maxWidth: "100%",
-											wordBreak: "break-word",
-											overflowWrap: "break-word",
-										}}
-									>
+									<Box sx={{ width: "100%", wordBreak: "break-word" }}>
 										<ListItemText
-											primary={
-												<Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
-													{message}
-												</Typography>
-											}
+											primary={<Typography sx={{ whiteSpace: "pre-wrap" }}>{message}</Typography>}
 										/>
-
 										<Box sx={{ display: "flex", justifyContent: "space-between" }}>
-											<Typography fontSize={12} variant="body2" color="text.secondary">
+											<Typography fontSize={12} color="text.secondary">
 												{msg.sequence_number}
 											</Typography>
-											<Typography fontSize={12} variant="body2" color="text.secondary">
-												{topicMessageTimestamp}
+											<Typography fontSize={12} color="text.secondary">
+												{timestamp}
 											</Typography>
-											<Typography fontSize={12} variant="body2" color="text.secondary">
-												{topicMessagePayerAccount}
+											<Typography fontSize={12} color="text.secondary">
+												{msg.payer_account_id}
 											</Typography>
 										</Box>
-
-										<hr style={{ width: "100%" }} />
+										<hr />
 									</Box>
 								</ListItem>
 							);
@@ -163,7 +130,14 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 };
 
 TopicMessagesList = styled(TopicMessagesList)`
-	padding: 5px 5px 5px 5px;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+
+	.scroll-container {
+		flex-grow: 1;
+		overflow-y: auto;
+	}
 `;
 
 export { TopicMessagesList };

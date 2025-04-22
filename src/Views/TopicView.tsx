@@ -1,13 +1,12 @@
 import { TopicId, TopicInfo } from "@hashgraph/sdk";
 import * as React from "react";
-import { TopicList } from "../components/Topics/TopicList";
-
-import { Box, Button, Grid, Paper, Switch, TextField, Typography } from "@mui/material";
+import { Box, Button, Grid, Paper, Switch, TextField, Typography, Drawer } from "@mui/material";
 import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
 import { Message } from "../Hedera/types";
 import { Hedera } from "../Hedera/hedera";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 import styled from "styled-components";
+import { TopicList } from "../components/Topics/TopicList";
 
 type Props = {
 	className?: string;
@@ -37,43 +36,33 @@ let TopicView = ({ className }: Props) => {
 
 	const onDeleteTopic = React.useCallback((topicId: TopicId) => {
 		Hedera.deleteTopicById(topicId).then(() => {
-			setTopics(prevState => prevState.filter(topic => topic.topicId !== topicId)); // Delete from state
-			LocalStorageHelper.deleteTopicId(topicId.toString()); // Delete from local storage
+			setTopics(prevState => prevState.filter(topic => topic.topicId !== topicId));
+			LocalStorageHelper.deleteTopicId(topicId.toString());
 		});
 	}, []);
 
 	const handleFetchTopic = React.useCallback(() => {
-		const trimmetTopicId = inputTopicId.trim();
+		const trimmedTopicId = inputTopicId.trim();
+		if (trimmedTopicId.length === 0) return;
 
-		if (trimmetTopicId.length === 0) {
-			return;
-		}
-
-		const topicId = TopicId.fromString(trimmetTopicId);
-
-		setLoadingTopic(true); // Loading to true
+		const topicId = TopicId.fromString(trimmedTopicId);
+		setLoadingTopic(true);
 
 		Hedera.getTopicInfo(topicId)
 			.then((topic: TopicInfo) => {
 				setTopics(prev => [topic, ...prev]);
 				onSelectTopic(topic);
-				LocalStorageHelper.storeTopicId(topic.topicId.toString()); // Store to local storage
+				LocalStorageHelper.storeTopicId(topic.topicId.toString());
 			})
 			.catch(alert)
-			.finally(() => {
-				setLoadingTopic(false); // Loading to false
-			});
+			.finally(() => setLoadingTopic(false));
 	}, [inputTopicId, onSelectTopic]);
 
 	const onCreateTopic = async () => {
-		if (memo.trim() === "") {
-			return;
-		}
-
+		if (memo.trim() === "") return;
 		setCreatingTopic(true);
 
 		let topicId;
-
 		if (isAdminPrivate) {
 			topicId = await Hedera.createPrivateAdminTopic(memo);
 		} else {
@@ -99,13 +88,11 @@ let TopicView = ({ className }: Props) => {
 
 	const onCreateTopicMessage = React.useCallback(
 		(topicMessage: string) => {
-			if (!selectedTopic) {
-				return;
-			}
+			if (!selectedTopic) return;
 
 			Hedera.createTopicMessage(selectedTopic.topicId, topicMessage).then(() => {
 				new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
-					getTopicMessagesByTopicId(selectedTopic.topicId); // refresh to get newly created topic message
+					getTopicMessagesByTopicId(selectedTopic.topicId);
 				});
 			});
 		},
@@ -113,23 +100,17 @@ let TopicView = ({ className }: Props) => {
 	);
 
 	React.useEffect(() => {
-		// Effect to get topic messages for selected topic
-		if (!selectedTopic) {
-			return;
-		}
-
+		if (!selectedTopic) return;
 		getTopicMessagesByTopicId(selectedTopic.topicId);
 	}, [selectedTopic]);
 
 	React.useEffect(() => {
-		// Effect to save topics to local storage
 		topics.forEach(topic => {
-			LocalStorageHelper.storeTopicId(topic.topicId.toString()); // Store to local storage
+			LocalStorageHelper.storeTopicId(topic.topicId.toString());
 		});
 	}, [topics]);
 
 	React.useEffect(() => {
-		// Effect to get topic ids from local storage initially
 		const locallySavedTopicIds = LocalStorageHelper.getStoredTopicIds();
 
 		const fetchTopics = async () => {
@@ -148,106 +129,104 @@ let TopicView = ({ className }: Props) => {
 
 	return (
 		<div className={className}>
-			<Box sx={{ display: "flex", width: "100%" }}>
-				{/* Left half */}
-				<Box sx={{ width: "40%", p: 2 }}>
-					<Paper elevation={3} sx={{ p: 3 }}>
-						{/* Look for Topic by Id */}
-						<Grid container spacing={2} alignItems="center">
-							<Grid item xs={8}>
-								<TextField
-									fullWidth
-									variant="standard"
-									value={inputTopicId}
-									placeholder="Topic id"
-									label="Look for topic by Id"
-									onChange={handleInputChange}
-								/>
-							</Grid>
+			<Box sx={{ width: "90%", height: "100%", p: 2 }}>
+				{/* Topic Controls */}
+				<Paper elevation={3} sx={{ p: 3, mb: 2 }}>
+					<Grid container spacing={2} alignItems="center">
+						<Grid item xs={8}>
+							<TextField
+								fullWidth
+								variant="standard"
+								value={inputTopicId}
+								placeholder="Topic id"
+								label="Look for topic by Id"
+								onChange={handleInputChange}
+							/>
+						</Grid>
+						<Grid item xs={4}>
+							<Button
+								fullWidth
+								size="small"
+								disableRipple
+								color="secondary"
+								variant="contained"
+								disabled={loadingTopic || inputTopicId.length === 0}
+								onClick={handleFetchTopic}
+							>
+								Fetch
+							</Button>
+						</Grid>
+					</Grid>
 
-							<Grid item xs={4}>
+					<Grid container spacing={2} sx={{ mt: 2 }}>
+						<Grid item xs={12}>
+							<Typography variant="h6" gutterBottom>
+								Create a Topic
+							</Typography>
+							<TextField
+								fullWidth
+								value={memo}
+								variant="standard"
+								label="Topic Memo"
+								onChange={onTopicMemoChange}
+							/>
+						</Grid>
+
+						<Grid item xs={12}>
+							<Box display="flex" alignItems="center" justifyContent="space-between">
+								<Box display="flex" alignItems="center">
+									<Typography variant="body2" sx={{ mr: 1 }}>
+										Public
+									</Typography>
+									<Switch
+										color="primary"
+										checked={isAdminPrivate}
+										onChange={e => setIsAdminPrivate(e.target.checked)}
+									/>
+									<Typography variant="body2" sx={{ ml: 1 }}>
+										Private
+									</Typography>
+								</Box>
+
 								<Button
-									fullWidth
 									size="small"
 									disableRipple
-									color="secondary"
+									color="success"
 									variant="contained"
-									disabled={loadingTopic || inputTopicId.length === 0}
-									onClick={handleFetchTopic}
+									disabled={creatingTopic || memo.length === 0}
+									onClick={onCreateTopic}
 								>
-									Fetch
+									Create
 								</Button>
-							</Grid>
+							</Box>
 						</Grid>
+					</Grid>
+				</Paper>
 
-						{/* Create Topic */}
-						<Grid container spacing={2} sx={{ mb: 2 }}>
-							<Grid item xs={12}>
-								<Typography variant="h6" gutterBottom>
-									Create a Topic
-								</Typography>
-								<TextField
-									fullWidth
-									value={memo}
-									variant="standard"
-									label="Topic Memo"
-									onChange={onTopicMemoChange}
-								/>
-							</Grid>
+				{/* Topic List Table */}
+				<TopicList //
+					topics={topics}
+					onSelectTopic={onSelectTopic}
+					onDeleteTopic={onDeleteTopic}
+				/>
 
-							<Grid item xs={12}>
-								<Box display="flex" alignItems="center" justifyContent="space-between">
-									<Box display="flex" alignItems="center">
-										<Typography variant="body2" sx={{ mr: 1 }}>
-											Public
-										</Typography>
-										<Switch
-											checked={isAdminPrivate}
-											onChange={e => setIsAdminPrivate(e.target.checked)}
-											color="primary"
-										/>
-										<Typography variant="body2" sx={{ ml: 1 }}>
-											Private
-										</Typography>
-									</Box>
-
-									<Button
-										variant="contained"
-										color="success"
-										size="small"
-										disableRipple
-										disabled={creatingTopic || memo.length === 0}
-										onClick={onCreateTopic}
-									>
-										Create
-									</Button>
-								</Box>
-							</Grid>
-						</Grid>
-					</Paper>
-
-					{/* Topic list */}
-					{topics.length > 0 && (
-						<Box sx={{ maxHeight: "500px", overflowY: "auto", mt: 2 }}>
-							<TopicList //
-								topics={topics}
-								onSelectTopic={onSelectTopic}
-								onDeleteTopic={onDeleteTopic}
-							/>
-						</Box>
-					)}
-				</Box>
-
-				{/* Right half */}
-				{selectedTopic && (
-					<Box sx={{ width: "60%" }}>
-						<TopicMessagesList //
+				{/* Right Drawer for Topic Messages */}
+				<Drawer
+					anchor="right"
+					open={Boolean(selectedTopic)}
+					onClose={() => setSelectedTopic(null)}
+					PaperProps={{
+						sx: { width: "40%", p: 2 },
+					}}
+				>
+					{selectedTopic && (
+						<TopicMessagesList
 							topicId={selectedTopic.topicId}
 							topicMessages={selectedTopicTopicMessages}
 							onCreateTopicMessage={onCreateTopicMessage}
 						/>
-					</Box>
-				)}
+					)}
+				</Drawer>
 			</Box>
 		</div>
 	);

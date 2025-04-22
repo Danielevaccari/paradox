@@ -1,7 +1,18 @@
 import React from "react";
 import { TopicId, TopicInfo } from "@hashgraph/sdk";
-import { List, ListItem, ListItemText, Button, Typography, Box, Stack } from "@mui/material";
-import { formatConsensusTime } from "../../Utility/date";
+import {
+	Box,
+	Button,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
+	Typography,
+	Paper,
+} from "@mui/material";
+import { Hedera } from "../../Hedera/hedera";
 
 type Props = {
 	topics: Array<TopicInfo>;
@@ -30,50 +41,56 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 				Topics
 			</Typography>
 
-			<List>
-				{topics.map(topic => (
-					<ListItem
-						key={topic.topicId.toString()}
-						sx={{
-							backgroundColor: theme => theme.palette.background.paper,
-							mb: 1,
-							px: 2,
-							py: 1.5,
-						}}
-						secondaryAction={
-							<Stack direction="row" spacing={1}>
-								{topic.adminKey && (
-									// Only topics with an admin key can be deleted
-									<Button
-										size="small"
-										color="error"
-										disableRipple
-										variant="outlined"
-										onClick={() => handleDeleteTopic(topic.topicId)}
-									>
-										Delete
-									</Button>
-								)}
+			<TableContainer component={Paper} style={{ borderRadius: 0 }}>
+				<Table size="small">
+					<TableHead>
+						<TableRow>
+							<TableCell>Topic id</TableCell>
 
-								<Button
-									size="small"
-									variant="contained"
-									color="primary"
-									disableRipple
-									onClick={() => handleSelectTopic(topic)}
-								>
-									Select
-								</Button>
-							</Stack>
-						}
-					>
-						<ListItemText
-							primary={topic.topicMemo || "Unnamed Topic"}
-							secondary={topic.topicId.toString()}
-						/>
-					</ListItem>
-				))}
-			</List>
+							<TableCell>Memo</TableCell>
+
+							<TableCell>Network</TableCell>
+
+							<TableCell align="right">Actions</TableCell>
+						</TableRow>
+					</TableHead>
+
+					<TableBody>
+						{topics.map(topic => (
+							<TableRow
+								key={topic.topicId.toString()}
+								hover
+								sx={{ cursor: "pointer" }}
+								onClick={() => handleSelectTopic(topic)}
+							>
+								<TableCell>
+									<Typography variant="caption">{topic.topicId.toString()}</Typography>
+								</TableCell>
+
+								<TableCell>{topic.topicMemo || "Unnamed Topic"}</TableCell>
+
+								<TableCell>{topic.ledgerId?.toString()}</TableCell>
+
+								<TableCell align="right">
+									{/* If admin key is the same as public key then the topic can be deleted */}
+									{topic.adminKey === Hedera.getPrivateKey().publicKey && (
+										<Button
+											size="small"
+											color="error"
+											disableRipple
+											sx={{ mr: 1 }}
+											variant="outlined"
+											onClick={() => handleDeleteTopic(topic.topicId)}
+										>
+											Delete
+										</Button>
+									)}
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</TableContainer>
 		</Box>
 	);
 };
