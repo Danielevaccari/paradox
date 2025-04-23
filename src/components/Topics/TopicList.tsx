@@ -41,16 +41,21 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 				Topics
 			</Typography>
 
-			<TableContainer component={Paper} style={{ borderRadius: 0 }}>
-				<Table size="small">
-					<TableHead>
+			<TableContainer component={Paper} style={{ borderRadius: 0, height: "500px", overflowY: "auto" }}>
+				<Table size="small" stickyHeader>
+					<TableHead
+						sx={{
+							position: "sticky",
+							top: 0,
+							backgroundColor: "background.paper",
+							zIndex: 1,
+						}}
+					>
 						<TableRow>
 							<TableCell>Topic id</TableCell>
-
+							<TableCell>Topic messages</TableCell>
 							<TableCell>Memo</TableCell>
-
 							<TableCell>Network</TableCell>
-
 							<TableCell align="right">Actions</TableCell>
 						</TableRow>
 					</TableHead>
@@ -67,20 +72,24 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 									<Typography variant="caption">{topic.topicId.toString()}</Typography>
 								</TableCell>
 
+								<TableCell>{topic.sequenceNumber?.toString() || "N/A"}</TableCell>
+
 								<TableCell>{topic.topicMemo || "Unnamed Topic"}</TableCell>
 
 								<TableCell>{topic.ledgerId?.toString()}</TableCell>
 
 								<TableCell align="right">
-									{/* If admin key is the same as public key then the topic can be deleted */}
-									{topic.adminKey === Hedera.getPrivateKey().publicKey && (
+									{topic.submitKey?.toString() === Hedera.getPrivateKey().publicKey.toString() && (
 										<Button
 											size="small"
 											color="error"
 											disableRipple
 											sx={{ mr: 1 }}
 											variant="outlined"
-											onClick={() => handleDeleteTopic(topic.topicId)}
+											onClick={event => {
+												event.stopPropagation(); // prevent row click
+												handleDeleteTopic(topic.topicId);
+											}}
 										>
 											Delete
 										</Button>

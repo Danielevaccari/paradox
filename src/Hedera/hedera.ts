@@ -100,8 +100,16 @@ export class Hedera {
 		return receipt.topicId ?? undefined;
 	}
 
-	static async createPrivateAdminTopic(topicMemo?: string) {
+	static async createAdminTopic(topicMemo?: string) {
 		const topic = await new TopicCreateTransaction({ topicMemo, adminKey: this.privateKey.publicKey }).execute(
+			this.client
+		);
+		const receipt = await topic.getReceipt(this.client);
+		return receipt.topicId ?? undefined;
+	}
+
+	static async createPrivateTopic(topicMemo?: string) {
+		const topic = await new TopicCreateTransaction({ topicMemo, submitKey: this.privateKey.publicKey }).execute(
 			this.client
 		);
 		const receipt = await topic.getReceipt(this.client);

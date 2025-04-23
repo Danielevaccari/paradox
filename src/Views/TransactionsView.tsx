@@ -3,6 +3,7 @@ import { Box, Typography, Paper, TextField, Button, Grid } from "@mui/material";
 import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
 import { Hedera } from "../Hedera/hedera";
+import { Notifier } from "../Notifications/notifications";
 
 type Props = {
 	className?: string;
@@ -14,7 +15,7 @@ let TransactionView = ({ className }: Props) => {
 
 	const onacceptTransaction = async () => {
 		if (transferAmount <= 0) {
-			alert("Amount must be greater than zero.");
+			Notifier.showWarning("Amount must be greater than zero.");
 			return;
 		}
 
@@ -25,9 +26,9 @@ let TransactionView = ({ className }: Props) => {
 			setToAccountId("");
 			setTransferAmount(0);
 
-			alert(`Transaction successful! Transaction Id: ${transactionId}`);
+			Notifier.showSuccess(`Transaction successful! Transaction Id: ${transactionId}`);
 		} catch (error) {
-			alert("Error sending transaction: " + error);
+			Notifier.showError("Error sending transaction: " + error);
 		}
 	};
 

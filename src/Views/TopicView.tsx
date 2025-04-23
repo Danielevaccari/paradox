@@ -7,6 +7,7 @@ import { Hedera } from "../Hedera/hedera";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 import styled from "styled-components";
 import { TopicList } from "../components/Topics/TopicList";
+import { Notifier } from "../Notifications/notifications";
 
 type Props = {
 	className?: string;
@@ -14,8 +15,9 @@ type Props = {
 
 let TopicView = ({ className }: Props) => {
 	const [memo, setMemo] = React.useState<string>("");
-	const [isAdminPrivate, setIsAdminPrivate] = React.useState(false);
-	const [inputTopicId, setInputTopicId] = React.useState("");
+	const [isAdmin, setIsAdmin] = React.useState(false);
+	const [isPrivate, setIsPrivate] = React.useState(false);
+	const [inputTopicId, setInputTopicId] = React.useState("0.0.");
 	const [loadingTopic, setLoadingTopic] = React.useState(false);
 	const [creatingTopic, setCreatingTopic] = React.useState(false);
 	const [topics, setTopics] = React.useState<Array<TopicInfo>>([]);
@@ -45,6 +47,13 @@ let TopicView = ({ className }: Props) => {
 		const trimmedTopicId = inputTopicId.trim();
 		if (trimmedTopicId.length === 0) return;
 
+		const topicIdRegex = /^\d+\.\d+\.\d+$/;
+
+		if (!topicIdRegex.test(trimmedTopicId)) {
+			Notifier.showError("Invalid topic ID format. Use format like 0.0.123456");
+			return;
+		}
+
 		const topicId = TopicId.fromString(trimmedTopicId);
 		setLoadingTopic(true);
 
@@ -52,9 +61,10 @@ let TopicView = ({ className }: Props) => {
 			.then((topic: TopicInfo) => {
 				setTopics(prev => [topic, ...prev]);
 				onSelectTopic(topic);
+				Notifier.showSuccess("Topic found");
 				LocalStorageHelper.storeTopicId(topic.topicId.toString());
 			})
-			.catch(alert)
+			.catch(Notifier.showError)
 			.finally(() => setLoadingTopic(false));
 	}, [inputTopicId, onSelectTopic]);
 
@@ -63,8 +73,11 @@ let TopicView = ({ className }: Props) => {
 		setCreatingTopic(true);
 
 		let topicId;
-		if (isAdminPrivate) {
-			topicId = await Hedera.createPrivateAdminTopic(memo);
+
+		if (isAdmin) {
+			topicId = await Hedera.createAdminTopic(memo);
+		} else if (isPrivate) {
+			topicId = await Hedera.createPrivateTopic(memo);
 		} else {
 			topicId = await Hedera.createTopic(memo);
 		}
@@ -129,24 +142,28 @@ let TopicView = ({ className }: Props) => {
 
 	return (
 		<div className={className}>
-			<Box sx={{ width: "90%", height: "100%", p: 2 }}>
+			<Box sx={{ width: "100%", p: 0 }}>
 				{/* Topic Controls */}
-				<Paper elevation={3} sx={{ p: 3, mb: 2 }}>
-					<Grid container spacing={2} alignItems="center">
-						<Grid item xs={8}>
+				<Paper elevation={3} sx={{ p: 3, mb: 2, width: "50%" }}>
+					<Grid container spacing={2} display="flex" alignItems="center" justifyContent="space-around">
+						<Grid item xs={12}>
+							<Typography variant="h6" gutterBottom>
+								Fetch an existing Topic
+							</Typography>
+
 							<TextField
 								fullWidth
+								label="Topic id"
 								variant="standard"
 								value={inputTopicId}
-								placeholder="Topic id"
-								label="Look for topic by Id"
 								onChange={handleInputChange}
 							/>
 						</Grid>
-						<Grid item xs={4}>
+
+						<Grid item xs={3}>
 							<Button
 								fullWidth
-								size="small"
+								size="large"
 								disableRipple
 								color="secondary"
 								variant="contained"
@@ -163,11 +180,12 @@ let TopicView = ({ className }: Props) => {
 							<Typography variant="h6" gutterBottom>
 								Create a Topic
 							</Typography>
+
 							<TextField
 								fullWidth
 								value={memo}
 								variant="standard"
-								label="Topic Memo"
+								label="Memo"
 								onChange={onTopicMemoChange}
 							/>
 						</Grid>
@@ -176,12 +194,28 @@ let TopicView = ({ className }: Props) => {
 							<Box display="flex" alignItems="center" justifyContent="space-between">
 								<Box display="flex" alignItems="center">
 									<Typography variant="body2" sx={{ mr: 1 }}>
+										Not admin
+									</Typography>
+
+									<Switch
+										color="success"
+										checked={isAdmin}
+										onChange={event => setIsAdmin(event.target.checked)}
+									/>
+
+									<Typography variant="body2" sx={{ ml: 1 }}>
+										Admin
+									</Typography>
+								</Box>
+
+								<Box display="flex" alignItems="center">
+									<Typography variant="body2" sx={{ mr: 1 }}>
 										Public
 									</Typography>
 									<Switch
-										color="primary"
-										checked={isAdminPrivate}
-										onChange={e => setIsAdminPrivate(e.target.checked)}
+										color="success"
+										checked={isPrivate}
+										onChange={event => setIsPrivate(event.target.checked)}
 									/>
 									<Typography variant="body2" sx={{ ml: 1 }}>
 										Private
@@ -189,7 +223,7 @@ let TopicView = ({ className }: Props) => {
 								</Box>
 
 								<Button
-									size="small"
+									size="large"
 									disableRipple
 									color="success"
 									variant="contained"
@@ -233,7 +267,7 @@ let TopicView = ({ className }: Props) => {
 };
 
 TopicView = styled(TopicView)`
-	height: 100%;
+	height: 100vh;
 `;
 
 export { TopicView };

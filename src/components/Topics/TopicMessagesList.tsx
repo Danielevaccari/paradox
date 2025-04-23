@@ -18,6 +18,7 @@ import { Hedera } from "../../Hedera/hedera";
 import { DataType } from "../../Enumerations/enumerations";
 import styled from "styled-components";
 import { formatConsensusTime } from "../../Utility/date";
+import { Notifier } from "../../Notifications/notifications";
 
 type Props = {
 	className?: string;
@@ -96,7 +97,7 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 								try {
 									message = JSON.stringify(JSON.parse(decodedTopicMessage), null, 2);
 								} catch (error) {
-									alert(error);
+									Notifier.showError(error);
 								}
 							}
 

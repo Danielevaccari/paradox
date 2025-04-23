@@ -18,6 +18,9 @@ const lightTheme = createTheme({
 			main: "#a1887f", // Warm, muted brown
 		},
 	},
+	shape: {
+		borderRadius: 0, // 🔥 This sets borderRadius to 0 globally
+	},
 	components: {
 		MuiPaper: {
 			styleOverrides: {
@@ -58,6 +61,9 @@ const darkTheme = createTheme({
 		allVariants: {
 			color: "#f0f0f0",
 		},
+	},
+	shape: {
+		borderRadius: 0, // 🔥 This sets borderRadius to 0 globally
 	},
 	components: {
 		MuiPaper: {
