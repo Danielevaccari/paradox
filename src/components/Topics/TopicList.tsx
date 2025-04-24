@@ -14,15 +14,17 @@ import {
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
+import styled from "styled-components";
 
 type Props = {
+	className?: string;
 	topics: Array<TopicInfo>;
 	onSelectTopic: (topic: TopicInfo) => void;
 	onDeleteTopic: (topicId: TopicId) => void;
 	refreshTopicView: () => void;
 };
 
-const TopicList = ({ topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
+let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
 	const handleSelectTopic = React.useCallback(
 		(topic: TopicInfo) => {
 			onSelectTopic(topic);
@@ -48,99 +50,106 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic, refreshTopicView }: P
 	}, []);
 
 	return (
-		<Box>
-			<Typography variant="h6" gutterBottom>
-				Topics
-			</Typography>
+		<div className={className}>
+			<Box height="100%">
+				<Typography variant="h6" gutterBottom>
+					Topics
+				</Typography>
 
-			<TableContainer component={Paper} style={{ borderRadius: 0, height: "500px", overflowY: "auto" }}>
-				<Table size="small" stickyHeader>
-					<TableHead
-						sx={{
-							position: "sticky",
-							top: 0,
-							backgroundColor: "background.paper",
-							zIndex: 1,
-						}}
-					>
-						<TableRow>
-							<TableCell>Topic id</TableCell>
-							<TableCell>Topic messages</TableCell>
-							<TableCell>Memo</TableCell>
-							<TableCell>Network</TableCell>
-							<TableCell>Expires</TableCell>
-							<TableCell align="right">Actions</TableCell>
-						</TableRow>
-					</TableHead>
+				<TableContainer component={Paper} style={{ borderRadius: 0, height: "100%", overflowY: "auto" }}>
+					<Table size="small" stickyHeader>
+						<TableHead
+							sx={{
+								position: "sticky",
+								top: 0,
+								backgroundColor: "background.paper",
+								zIndex: 1,
+							}}
+						>
+							<TableRow>
+								<TableCell>Topic id</TableCell>
+								<TableCell>Topic messages</TableCell>
+								<TableCell>Memo</TableCell>
+								<TableCell>Network</TableCell>
+								<TableCell>Expires</TableCell>
+								<TableCell align="right">Actions</TableCell>
+							</TableRow>
+						</TableHead>
 
-					<TableBody>
-						{topics.map(topic => (
-							<TableRow
-								key={topic.topicId.toString()}
-								hover
-								sx={{ cursor: "pointer" }}
-								onClick={() => handleSelectTopic(topic)}
-							>
-								<TableCell align="left" sx={{ width: 50 }}>
-									<Typography variant="caption">{topic.topicId.toString()}</Typography>
-								</TableCell>
+						<TableBody>
+							{topics.map(topic => (
+								<TableRow
+									key={topic.topicId.toString()}
+									hover
+									sx={{ cursor: "pointer" }}
+									onClick={() => handleSelectTopic(topic)}
+								>
+									<TableCell align="left" sx={{ width: 50 }}>
+										<Typography variant="caption">{topic.topicId.toString()}</Typography>
+									</TableCell>
 
-								<TableCell align="left" width={120}>
-									{topic.sequenceNumber?.toString() || "NaN"}
-								</TableCell>
+									<TableCell align="left" width={120}>
+										{topic.sequenceNumber?.toString() || "NaN"}
+									</TableCell>
 
-								<TableCell align="left">
-									<Typography width={200} variant="body2">
-										{topic.topicMemo ?? "Unnamed Topic"}
-										{topic.topicMemo && topic.topicMemo.length > 50 ? "..." : ""}
-									</Typography>
-								</TableCell>
+									<TableCell align="left">
+										<Typography width={200} variant="body2">
+											{topic.topicMemo ?? "Unnamed Topic"}
+											{topic.topicMemo && topic.topicMemo.length > 50 ? "..." : ""}
+										</Typography>
+									</TableCell>
 
-								<TableCell width={70}>{topic.ledgerId?.toString().toUpperCase()}</TableCell>
+									<TableCell width={70}>{topic.ledgerId?.toString().toUpperCase()}</TableCell>
 
-								<TableCell>
-									{topic.expirationTime && formatDateToDDMMYYYY(topic.expirationTime.toDate())}
-								</TableCell>
+									<TableCell>
+										{topic.expirationTime && formatDateToDDMMYYYY(topic.expirationTime.toDate())}
+									</TableCell>
 
-								<TableCell align="right">
-									{topic.submitKey?.toString() === Hedera.getPrivateKey().publicKey.toString() && (
+									<TableCell align="right">
+										{topic.submitKey?.toString() ===
+											Hedera.getPrivateKey().publicKey.toString() && (
+											<Button
+												size="small"
+												color="error"
+												disableRipple
+												sx={{ mr: 1 }}
+												variant="outlined"
+												onClick={event => {
+													event.stopPropagation(); // prevent row click
+													handleDeleteTopic(topic.topicId);
+												}}
+											>
+												Delete
+											</Button>
+										)}
+
 										<Button
 											size="small"
-											color="error"
 											disableRipple
 											sx={{ mr: 1 }}
+											color="info"
 											variant="outlined"
 											onClick={event => {
 												event.stopPropagation(); // prevent row click
-												handleDeleteTopic(topic.topicId);
+												handleUpdateTopicExpirationDate(topic);
 											}}
 										>
-											Delete
+											Set Max Expiry
 										</Button>
-									)}
-
-									<Button
-										size="small"
-										disableRipple
-										sx={{ mr: 1 }}
-										color="info"
-										variant="outlined"
-										onClick={event => {
-											event.stopPropagation(); // prevent row click
-											handleUpdateTopicExpirationDate(topic);
-										}}
-									>
-										Set Max Expiry
-									</Button>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
-			</TableContainer>
-		</Box>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</TableContainer>
+			</Box>
+		</div>
 	);
 };
+
+TopicList = styled(TopicList)`
+	height: 50vh;
+`;
 
 export { TopicList };
 
