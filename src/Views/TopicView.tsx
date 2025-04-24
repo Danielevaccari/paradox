@@ -151,7 +151,7 @@ let TopicView = ({ className }: Props) => {
 					<Grid container spacing={2} display="flex" alignItems="center" justifyContent="space-around">
 						<Grid item xs={12}>
 							<Typography variant="h6" gutterBottom>
-								Fetch an existing Topic
+								Existing Topic
 							</Typography>
 
 							<TextField
@@ -181,7 +181,7 @@ let TopicView = ({ className }: Props) => {
 					<Grid container spacing={2} sx={{ mt: 2 }}>
 						<Grid item xs={12}>
 							<Typography variant="h6" gutterBottom>
-								Create a Topic
+								Create Topic
 							</Typography>
 
 							<TextField
