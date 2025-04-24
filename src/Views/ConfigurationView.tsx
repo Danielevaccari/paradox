@@ -6,8 +6,10 @@ import { Hedera } from "../Hedera/hedera";
 type Props = { className?: string };
 
 let ConfigurationView = ({ className }: Props) => {
-	const [accountId, setAccountId] = React.useState(Hedera.getAccountId());
-	const [privateKey, setPrivateKey] = React.useState(Hedera.getPrivateKey().toStringDer());
+	const [accountId, setAccountId] = React.useState("");
+	const [privateKey, setPrivateKey] = React.useState("");
+	// const [accountId, setAccountId] = React.useState(Hedera.getAccountId());
+	// const [privateKey, setPrivateKey] = React.useState(Hedera.getPrivateKey().toStringDer());
 
 	const handleSave = () => {
 		if (privateKey) {
