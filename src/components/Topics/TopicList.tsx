@@ -39,15 +39,18 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 		[onDeleteTopic]
 	);
 
-	const handleUpdateTopicExpirationDate = React.useCallback((topic: TopicInfo) => {
-		const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from NOW max expiration
+	const handleUpdateTopicExpirationDate = React.useCallback(
+		(topic: TopicInfo) => {
+			const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from NOW max expiration
 
-		Hedera.updateTopic({ topicId: topic.topicId, newExpirationTime: newExpirationTime })
-			.then(() => {
-				refreshTopicView();
-			})
-			.catch(Notifier.showError);
-	}, []);
+			Hedera.updateTopic({ topicId: topic.topicId, newExpirationTime: newExpirationTime })
+				.then(() => {
+					refreshTopicView();
+				})
+				.catch(Notifier.showError);
+		},
+		[refreshTopicView]
+	);
 
 	return (
 		<div className={className}>

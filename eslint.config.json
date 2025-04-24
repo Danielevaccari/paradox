@@ -1,0 +1,37 @@
+{
+	"overrides": [
+		{
+			"files": ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+			"plugins": {
+				"js": "@eslint/js"
+			},
+			"extends": ["js/recommended"]
+		},
+		{
+			"files": ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+			"languageOptions": {
+				"globals": {
+					"browser": "readonly"
+				}
+			}
+		},
+		{
+			"extends": ["typescript-eslint/recommended"]
+		},
+		{
+			"extends": ["plugin:react/recommended"]
+		},
+		{
+			"rules": {
+				"@typescript-eslint/no-unused-vars": [
+					"error",
+					{
+						"argsIgnorePattern": "^_"
+					}
+				],
+				"react-hooks/exhaustive-deps": "warn",
+				"react-hooks/rules-of-hooks": "error"
+			}
+		}
+	]
+}

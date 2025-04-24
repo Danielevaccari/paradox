@@ -125,7 +125,7 @@ let TopicView = ({ className }: Props) => {
 
 	const refresh = React.useCallback(() => {
 		fetchTopics();
-	}, []);
+	}, [fetchTopics]);
 
 	React.useEffect(() => {
 		if (!selectedTopic) return;
@@ -141,7 +141,7 @@ let TopicView = ({ className }: Props) => {
 	React.useEffect(() => {
 		// Effect for initial fetch
 		fetchTopics();
-	}, []);
+	}, [fetchTopics]);
 
 	return (
 		<div className={className}>
