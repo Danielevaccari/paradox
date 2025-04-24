@@ -14,6 +14,7 @@ import {
 	PrivateKey,
 	Mnemonic,
 	TopicDeleteTransaction,
+	TopicUpdateTransaction,
 } from "@hashgraph/sdk";
 import { DataStructure, Message } from "./types";
 
@@ -114,6 +115,39 @@ export class Hedera {
 		);
 		const receipt = await topic.getReceipt(this.client);
 		return receipt.topicId ?? undefined;
+	}
+
+	static async updateTopic({
+		topicId,
+		newMemo,
+		newAutoRenewAccountId,
+		newExpirationTime,
+	}: {
+		topicId: TopicId;
+		newMemo?: string;
+		newAutoRenewAccountId?: AccountId | string;
+		newExpirationTime?: Date | number | string; // Can be a Date object, timestamp, or ISO string
+	}) {
+		let tx = new TopicUpdateTransaction().setTopicId(topicId);
+
+		if (newMemo) {
+			tx = tx.setTopicMemo(newMemo);
+		}
+		if (newAutoRenewAccountId) {
+			tx = tx.setAutoRenewAccountId(AccountId.fromString(newAutoRenewAccountId.toString()));
+		}
+		if (newExpirationTime) {
+			const timestamp = Timestamp.fromDate(newExpirationTime);
+			tx = tx.setExpirationTime(timestamp);
+		}
+
+		const frozenTx = tx.freezeWith(this.client);
+
+		const signedTx = await frozenTx.sign(this.privateKey);
+		const response = await signedTx.execute(this.client);
+		const receipt = await response.getReceipt(this.client);
+
+		return receipt.status.toString();
 	}
 
 	static async deleteTopicById(topicId: TopicId) {

@@ -13,14 +13,16 @@ import {
 	Paper,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
+import { Notifier } from "../../Notifications/notifications";
 
 type Props = {
 	topics: Array<TopicInfo>;
 	onSelectTopic: (topic: TopicInfo) => void;
 	onDeleteTopic: (topicId: TopicId) => void;
+	refreshTopicView: () => void;
 };
 
-const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
+const TopicList = ({ topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
 	const handleSelectTopic = React.useCallback(
 		(topic: TopicInfo) => {
 			onSelectTopic(topic);
@@ -34,6 +36,16 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 		},
 		[onDeleteTopic]
 	);
+
+	const handleUpdateTopicExpirationDate = React.useCallback((topic: TopicInfo) => {
+		const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from NOW max expiration
+
+		Hedera.updateTopic({ topicId: topic.topicId, newExpirationTime: newExpirationTime })
+			.then(() => {
+				refreshTopicView();
+			})
+			.catch(Notifier.showError);
+	}, []);
 
 	return (
 		<Box>
@@ -56,6 +68,7 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 							<TableCell>Topic messages</TableCell>
 							<TableCell>Memo</TableCell>
 							<TableCell>Network</TableCell>
+							<TableCell>Expires</TableCell>
 							<TableCell align="right">Actions</TableCell>
 						</TableRow>
 					</TableHead>
@@ -68,15 +81,26 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 								sx={{ cursor: "pointer" }}
 								onClick={() => handleSelectTopic(topic)}
 							>
-								<TableCell>
+								<TableCell align="left" sx={{ width: 50 }}>
 									<Typography variant="caption">{topic.topicId.toString()}</Typography>
 								</TableCell>
 
-								<TableCell>{topic.sequenceNumber?.toString() || "N/A"}</TableCell>
+								<TableCell align="left" width={120}>
+									{topic.sequenceNumber?.toString() || "NaN"}
+								</TableCell>
 
-								<TableCell>{topic.topicMemo || "Unnamed Topic"}</TableCell>
+								<TableCell align="left">
+									<Typography width={200} variant="body2">
+										{topic.topicMemo ?? "Unnamed Topic"}
+										{topic.topicMemo && topic.topicMemo.length > 50 ? "..." : ""}
+									</Typography>
+								</TableCell>
 
-								<TableCell>{topic.ledgerId?.toString()}</TableCell>
+								<TableCell width={70}>{topic.ledgerId?.toString().toUpperCase()}</TableCell>
+
+								<TableCell>
+									{topic.expirationTime && formatDateToDDMMYYYY(topic.expirationTime.toDate())}
+								</TableCell>
 
 								<TableCell align="right">
 									{topic.submitKey?.toString() === Hedera.getPrivateKey().publicKey.toString() && (
@@ -94,6 +118,20 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 											Delete
 										</Button>
 									)}
+
+									<Button
+										size="small"
+										disableRipple
+										sx={{ mr: 1 }}
+										color="info"
+										variant="outlined"
+										onClick={event => {
+											event.stopPropagation(); // prevent row click
+											handleUpdateTopicExpirationDate(topic);
+										}}
+									>
+										Set Max Expiry
+									</Button>
 								</TableCell>
 							</TableRow>
 						))}
@@ -105,3 +143,11 @@ const TopicList = ({ topics, onSelectTopic, onDeleteTopic }: Props) => {
 };
 
 export { TopicList };
+
+function formatDateToDDMMYYYY(date: Date) {
+	const d = date instanceof Date ? date : new Date(date);
+	const day = String(d.getDate()).padStart(2, "0");
+	const month = String(d.getMonth() + 1).padStart(2, "0");
+	const year = d.getFullYear();
+	return `${day}-${month}-${year}`;
+}

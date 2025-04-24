@@ -17,8 +17,8 @@ let TopicView = ({ className }: Props) => {
 	const [memo, setMemo] = React.useState<string>("");
 	const [isAdmin, setIsAdmin] = React.useState(false);
 	const [isPrivate, setIsPrivate] = React.useState(false);
-	const [inputTopicId, setInputTopicId] = React.useState("0.0.");
 	const [loadingTopic, setLoadingTopic] = React.useState(false);
+	const [inputTopicId, setInputTopicId] = React.useState("0.0.");
 	const [creatingTopic, setCreatingTopic] = React.useState(false);
 	const [topics, setTopics] = React.useState<Array<TopicInfo>>([]);
 	const [selectedTopic, setSelectedTopic] = React.useState<TopicInfo | null>(null);
@@ -112,6 +112,21 @@ let TopicView = ({ className }: Props) => {
 		[selectedTopic]
 	);
 
+	const fetchTopics = React.useCallback(async () => {
+		const topicInfos = await Promise.all(
+			LocalStorageHelper.getStoredTopicIds().map(async savedTopicId => {
+				const topicId = TopicId.fromString(savedTopicId);
+				return await Hedera.getTopicInfo(topicId);
+			})
+		);
+
+		setTopics(topicInfos);
+	}, []);
+
+	const refresh = React.useCallback(() => {
+		fetchTopics();
+	}, []);
+
 	React.useEffect(() => {
 		if (!selectedTopic) return;
 		getTopicMessagesByTopicId(selectedTopic.topicId);
@@ -124,25 +139,13 @@ let TopicView = ({ className }: Props) => {
 	}, [topics]);
 
 	React.useEffect(() => {
-		const locallySavedTopicIds = LocalStorageHelper.getStoredTopicIds();
-
-		const fetchTopics = async () => {
-			const topicInfos = await Promise.all(
-				locallySavedTopicIds.map(async savedTopicId => {
-					const topicId = TopicId.fromString(savedTopicId);
-					return await Hedera.getTopicInfo(topicId);
-				})
-			);
-
-			setTopics(topicInfos);
-		};
-
+		// Effect for initial fetch
 		fetchTopics();
 	}, []);
 
 	return (
 		<div className={className}>
-			<Box sx={{ width: "100%", p: 0 }}>
+			<Box sx={{ width: "100%" }}>
 				{/* Topic Controls */}
 				<Paper elevation={3} sx={{ p: 3, mb: 2, width: "50%" }}>
 					<Grid container spacing={2} display="flex" alignItems="center" justifyContent="space-around">
@@ -240,6 +243,7 @@ let TopicView = ({ className }: Props) => {
 				{/* Topic List Table */}
 				<TopicList //
 					topics={topics}
+					refreshTopicView={refresh}
 					onSelectTopic={onSelectTopic}
 					onDeleteTopic={onDeleteTopic}
 				/>

@@ -99,9 +99,9 @@ const App = () => {
 					component="main"
 					sx={{
 						flexGrow: 1,
-						bgcolor: "background.default",
 						height: "100vh",
 						overflow: "auto",
+						bgcolor: "background.default",
 					}}
 				>
 					<Routes>
