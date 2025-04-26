@@ -34,7 +34,7 @@ let TransactionView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Box sx={{ display: "flex", flexDirection: "column", p: 3, gap: 2, width: "50%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "50%" }}>
                 <Paper elevation={3} sx={{ p: 3 }}>
                     <Typography variant="h5" gutterBottom>
                         Create a Transaction
@@ -42,7 +42,7 @@ let TransactionView = ({ className }: Props) => {
 
                     <Grid container spacing={2} alignItems="center">
                         {/* Sending Account */}
-                        <Grid item xs={4}>
+                        <Grid>
                             <Paper elevation={3} sx={{ p: 2 }}>
                                 <TextField
                                     fullWidth
@@ -58,7 +58,7 @@ let TransactionView = ({ className }: Props) => {
                         </Grid>
 
                         {/* Transaction Amount */}
-                        <Grid item xs={2} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Grid sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             <Box sx={{ textAlign: "center" }}>
                                 <TextField
                                     fullWidth
@@ -72,7 +72,7 @@ let TransactionView = ({ className }: Props) => {
                         </Grid>
 
                         {/* Receiving Account */}
-                        <Grid item xs={4}>
+                        <Grid>
                             <Paper elevation={3} sx={{ p: 2 }}>
                                 <TextField
                                     fullWidth
@@ -86,7 +86,7 @@ let TransactionView = ({ className }: Props) => {
                     </Grid>
 
                     {/* Submit Button */}
-                    <Grid item xs={4} sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <Grid sx={{ display: "flex", justifyContent: "flex-end" }}>
                         <Button
                             color="primary"
                             variant="contained"
@@ -103,7 +103,7 @@ let TransactionView = ({ className }: Props) => {
 };
 
 TransactionView = styled(TransactionView)`
-    // You can add any custom styles here if needed
+    // Styles here
 `;
 
 export { TransactionView };

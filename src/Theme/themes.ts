@@ -2,7 +2,7 @@ import { createTheme, PaletteMode } from "@mui/material";
 
 const Colors = {
     light: {
-        backgroundDefault: "#f5f5f5", // very soft gray
+        backgroundDefault: "#eeeeee", // light gray background
         backgroundPaper: "#ffffff", // white paper
         textPrimary: "#1a1a1a", // almost black for excellent readability
         textSecondary: "#5f6368", // neutral muted gray

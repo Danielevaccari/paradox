@@ -66,8 +66,8 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 
     return (
         <div className={className}>
-            <Box height="100%" width="100%">
-                <TableContainer component={Paper} style={{ borderRadius: 0, height: "100%" }}>
+            <Box>
+                <TableContainer component={Paper}>
                     <Table size="small" stickyHeader>
                         <TableHead
                             sx={{
@@ -78,8 +78,8 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                             }}
                         >
                             <TableRow>
-                                <TableCell>Topic id</TableCell>
-                                <TableCell>Topic messages</TableCell>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Msg amt</TableCell>
                                 <TableCell>
                                     Memo
                                     <TextField
@@ -87,7 +87,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         sx={{ ml: 1 }}
                                         variant="standard"
                                         value={searchTerm}
-                                        placeholder="Search"
+                                        placeholder="search"
                                         onChange={(event) => setSearchTerm(event.target.value)}
                                     />
                                 </TableCell>

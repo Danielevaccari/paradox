@@ -14,6 +14,7 @@ const App = () => {
                     sx={{
                         flexGrow: 1,
                         height: "100%",
+                        padding: "1rem 0px 0px 1rem",
                         bgcolor: "background.default",
                     }}
                 >

@@ -23,14 +23,13 @@ let ConfigurationView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Box sx={{ p: 3 }}>
-                <Typography variant="h5" gutterBottom>
-                    Hedera account info
-                </Typography>
-
+            <Box>
                 <Paper elevation={3} sx={{ p: 3, maxWidth: 600 }}>
+                    <Typography variant="h5" gutterBottom>
+                        Hedera account info
+                    </Typography>
                     <Grid container spacing={2} direction="column">
-                        <Grid item>
+                        <Grid>
                             <TextField
                                 fullWidth
                                 variant="standard"
@@ -40,7 +39,7 @@ let ConfigurationView = ({ className }: Props) => {
                             />
                         </Grid>
 
-                        <Grid item>
+                        <Grid>
                             <TextField
                                 fullWidth
                                 variant="standard"
@@ -50,7 +49,7 @@ let ConfigurationView = ({ className }: Props) => {
                             />
                         </Grid>
 
-                        <Grid item>
+                        <Grid>
                             <Button variant="contained" color="primary" onClick={handleSave} disabled={!accountId || !privateKey}>
                                 Save
                             </Button>
