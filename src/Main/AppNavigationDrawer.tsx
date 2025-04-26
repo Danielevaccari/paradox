@@ -63,7 +63,7 @@ const AppNavigationDrawer = () => {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <StyledNavLink to="/Accounts">
+                    <StyledNavLink to="/Account">
                         <ListItemButton>
                             <ListItemText primary="Accounts" />
                         </ListItemButton>

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
 import { Hedera } from "../Hedera/hedera";
 import { Notifier } from "../Notifications/notifications";
+import { TransactionList } from "../components/Transactions/TransactionList.";
 
 type Props = {
     className?: string;
@@ -34,14 +35,14 @@ let TransactionView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "50%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {/* Send Transaction Form */}
                 <Paper elevation={3} sx={{ p: 3 }}>
                     <Typography variant="h5" gutterBottom>
                         Create a Transaction
                     </Typography>
 
                     <Grid container spacing={2} alignItems="center">
-                        {/* Sending Account */}
                         <Grid>
                             <Paper elevation={3} sx={{ p: 2 }}>
                                 <TextField
@@ -50,28 +51,22 @@ let TransactionView = ({ className }: Props) => {
                                     disabled
                                     label="Sending Account Id"
                                     value={Hedera.getAccountId()}
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
+                                    InputProps={{ readOnly: true }}
                                 />
                             </Paper>
                         </Grid>
 
-                        {/* Transaction Amount */}
-                        <Grid sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            <Box sx={{ textAlign: "center" }}>
-                                <TextField
-                                    fullWidth
-                                    type="number"
-                                    variant="standard"
-                                    label="Amount (HBAR)"
-                                    value={transferAmount}
-                                    onChange={(e) => setTransferAmount(Number(e.target.value))}
-                                />
-                            </Box>
+                        <Grid>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                variant="standard"
+                                label="Amount (HBAR)"
+                                value={transferAmount}
+                                onChange={(event) => setTransferAmount(Number(event.target.value))}
+                            />
                         </Grid>
 
-                        {/* Receiving Account */}
                         <Grid>
                             <Paper elevation={3} sx={{ p: 2 }}>
                                 <TextField
@@ -85,8 +80,7 @@ let TransactionView = ({ className }: Props) => {
                         </Grid>
                     </Grid>
 
-                    {/* Submit Button */}
-                    <Grid sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <Grid sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
                         <Button
                             color="primary"
                             variant="contained"
@@ -97,13 +91,16 @@ let TransactionView = ({ className }: Props) => {
                         </Button>
                     </Grid>
                 </Paper>
+
+                <TransactionList accountId={Hedera.getAccountId()} />
             </Box>
         </div>
     );
 };
 
 TransactionView = styled(TransactionView)`
-    // Styles here
+    height: 100%;
+    width: 100%;
 `;
 
 export { TransactionView };

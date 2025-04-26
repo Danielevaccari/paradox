@@ -1,0 +1,75 @@
+import * as React from "react";
+import { Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import { Transaction } from "../../Hedera/types";
+import { Hedera } from "../../Hedera/hedera";
+import { Notifier } from "../../Notifications/notifications";
+import styled from "styled-components";
+import { AccountId } from "@hashgraph/sdk";
+import { formatConsensusTime } from "../../Utility/date";
+
+type Props = {
+    className?: string;
+    accountId: AccountId | string;
+};
+
+let TransactionList = ({ className, accountId }: Props) => {
+    const [transactions, setTransactions] = React.useState<Array<Transaction>>([]);
+
+    React.useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                const txns = await Hedera.getAccountTransactions(accountId);
+                setTransactions(txns || []);
+            } catch (error) {
+                Notifier.showError(error);
+            }
+        };
+
+        if (accountId) {
+            fetchTransactions();
+        }
+    }, [accountId]);
+
+    return (
+        <div className={className}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Transactions for Account: {accountId.toString()}
+                </Typography>
+                {transactions.length > 0 && (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Transaction ID</TableCell>
+                                <TableCell>Type</TableCell>
+                                <TableCell>Result</TableCell>
+                                <TableCell>Fee</TableCell>
+                                <TableCell>Consensus Timestamp</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {transactions.map((tx) => (
+                                <TableRow key={tx.transaction_id}>
+                                    <TableCell>{tx.transaction_id}</TableCell>
+                                    <TableCell>{tx.name}</TableCell>
+                                    <TableCell>{tx.result}</TableCell>
+                                    <TableCell>{tx.charged_tx_fee}</TableCell>
+                                    <TableCell>{formatConsensusTime(tx.consensus_timestamp.toString())}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+
+                {transactions.length === 0 && <Typography>No transactions found for this account.</Typography>}
+            </Paper>
+        </div>
+    );
+};
+
+TransactionList = styled(TransactionList)`
+    height: 100%;
+    width: 100%;
+`;
+
+export { TransactionList };

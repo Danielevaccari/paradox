@@ -35,7 +35,7 @@ let ConfigurationView = ({ className }: Props) => {
                                 variant="standard"
                                 label="Account Id"
                                 value={accountId}
-                                onChange={(e) => setAccountId(e.target.value)}
+                                onChange={(event) => setAccountId(event.target.value)}
                             />
                         </Grid>
 
@@ -45,7 +45,7 @@ let ConfigurationView = ({ className }: Props) => {
                                 variant="standard"
                                 label="Private Key"
                                 value={privateKey}
-                                onChange={(e) => setPrivateKey(e.target.value)}
+                                onChange={(event) => setPrivateKey(event.target.value)}
                             />
                         </Grid>
 

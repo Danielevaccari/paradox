@@ -17,6 +17,7 @@ import {
     TopicUpdateTransaction,
 } from "@hashgraph/sdk";
 import { DataStructure, Message } from "./types";
+import { Notifier } from "../Notifications/notifications";
 
 export class Hedera {
     private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
@@ -188,8 +189,27 @@ export class Hedera {
         return await new TopicInfoQuery().setTopicId(topicId).execute(this.client);
     }
 
-    static async getAccountInfoQuery() {
-        return await new AccountInfoQuery().setAccountId(this.accountId).execute(this.client);
+    static async getAccountInfo(accountId: AccountId) {
+        return await new AccountInfoQuery().setAccountId(accountId).execute(this.client);
+    }
+
+    static async getAccountTransactions(accountId: AccountId | string, limit = 25, order: "asc" | "desc" = "desc") {
+        const id = typeof accountId === "string" ? accountId : accountId.toString();
+        const url = `https://testnet.mirrornode.hedera.com/api/v1/transactions?account.id=${id}&limit=${limit}&order=${order}`;
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                Notifier.showError(response);
+            }
+
+            const data = await response.json();
+
+            return data.transactions;
+        } catch (error) {
+            Notifier.showError(error);
+        }
     }
 
     static createConsensusTimeStamp(date: string | number | Date) {
