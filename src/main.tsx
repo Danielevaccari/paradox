@@ -9,11 +9,11 @@ import { SnackbarProvider } from "notistack";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
 root.render(
-	<React.StrictMode>
-		<SnackbarProvider maxSnack={3}>
-			<ThemeProvider theme={darkTheme}>
-				<App />
-			</ThemeProvider>
-		</SnackbarProvider>
-	</React.StrictMode>
+    <React.StrictMode>
+        <SnackbarProvider maxSnack={3}>
+            <ThemeProvider theme={darkTheme}>
+                <App />
+            </ThemeProvider>
+        </SnackbarProvider>
+    </React.StrictMode>,
 );
