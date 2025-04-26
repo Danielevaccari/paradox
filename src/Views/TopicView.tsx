@@ -128,7 +128,10 @@ let TopicView = ({ className }: Props) => {
 	}, [fetchTopics]);
 
 	React.useEffect(() => {
-		if (!selectedTopic) return;
+		if (!selectedTopic) {
+			return;
+		}
+
 		getTopicMessagesByTopicId(selectedTopic.topicId);
 	}, [selectedTopic]);
 
