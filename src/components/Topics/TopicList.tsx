@@ -11,6 +11,7 @@ import {
 	TableRow,
 	Typography,
 	Paper,
+	CircularProgress,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
@@ -25,6 +26,8 @@ type Props = {
 };
 
 let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
+	const [updatingTopicId, setUpdatingTopicId] = React.useState<string | null>(null);
+
 	const handleSelectTopic = React.useCallback(
 		(topic: TopicInfo) => {
 			onSelectTopic(topic);
@@ -47,7 +50,10 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 				.then(() => {
 					refreshTopicView();
 				})
-				.catch(Notifier.showError);
+				.catch(Notifier.showError)
+				.finally(() => {
+					setUpdatingTopicId(null);
+				});
 		},
 		[refreshTopicView]
 	);
@@ -126,19 +132,24 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 											</Button>
 										)}
 
-										<Button
-											size="small"
-											disableRipple
-											sx={{ mr: 1 }}
-											color="info"
-											variant="outlined"
-											onClick={event => {
-												event.stopPropagation(); // prevent row click
-												handleUpdateTopicExpirationDate(topic);
-											}}
-										>
-											Set Max Expiry
-										</Button>
+										{updatingTopicId === topic.topicId.toString() ? (
+											<CircularProgress size={20} />
+										) : (
+											<Button
+												size="small"
+												disableRipple
+												sx={{ mr: 1 }}
+												color="info"
+												variant="outlined"
+												onClick={event => {
+													event.stopPropagation(); // prevent row click
+													setUpdatingTopicId(topic.topicId.toString());
+													handleUpdateTopicExpirationDate(topic);
+												}}
+											>
+												Set Max Expiry
+											</Button>
+										)}
 									</TableCell>
 								</TableRow>
 							))}

@@ -19,8 +19,8 @@ import {
 import { DataStructure, Message } from "./types";
 
 export class Hedera {
-	private static accountId = process.env.REACT_APP_MY_ACCOUNT_ID ?? "";
-	private static privateKey = PrivateKey.fromStringECDSA(process.env.REACT_APP_MY_PRIVATE_KEY ?? "");
+	private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
+	private static privateKey = PrivateKey.fromStringECDSA(import.meta.env.VITE_MY_PRIVATE_KEY ?? "");
 
 	private static client: Client = (() => {
 		if (!this.accountId || !this.privateKey) {

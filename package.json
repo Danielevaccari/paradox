@@ -5,31 +5,35 @@
 	"dependencies": {
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.0",
-		"@hashgraph/sdk": "^2.40.0",
+		"@hashgraph/sdk": "^2.63.0",
 		"@mui/material": "^5.17.1",
 		"@mui/styled-engine-sc": "^7.0.2",
-		"@testing-library/jest-dom": "^5.17.0",
-		"@testing-library/react": "^13.4.0",
-		"@testing-library/user-event": "^13.5.0",
-		"@types/jest": "^27.5.2",
-		"@types/node": "^16.18.73",
-		"@types/react": "^18.3.20",
-		"@types/react-dom": "^18.3.6",
-		"@types/react-router-dom": "^5.3.3",
 		"notistack": "^3.0.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-router-dom": "^7.5.1",
-		"react-scripts": "5.0.1",
-		"styled-components": "^6.1.17",
+		"styled-components": "^6.1.17"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.25.0",
+		"@types/jest": "^27.5.2",
+		"@types/node": "^18.19.87",
+		"@types/react": "^18.3.20",
+		"@types/react-dom": "^18.3.6",
+		"@types/react-router-dom": "^5.3.3",
+		"@vitejs/plugin-react": "^4.0.0",
+		"eslint": "^8.57.1",
+		"eslint-plugin-react": "^7.37.5",
+		"globals": "^16.0.0",
 		"typescript": "^4.9.5",
-		"web-vitals": "^2.1.4"
+		"typescript-eslint": "^8.30.1",
+		"vite": "^5.2.0"
 	},
 	"scripts": {
-		"start": "react-scripts start",
-		"build": "react-scripts build",
-		"test": "react-scripts test",
-		"eject": "react-scripts eject"
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "echo \"No test runner configured\" && exit 0"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -48,12 +52,5 @@
 			"last 1 firefox version",
 			"last 1 safari version"
 		]
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.25.0",
-		"eslint": "^8.57.1",
-		"eslint-plugin-react": "^7.37.5",
-		"globals": "^16.0.0",
-		"typescript-eslint": "^8.30.1"
 	}
 }
