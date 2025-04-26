@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { TopicId, TopicInfo } from "@hashgraph/sdk";
 import {
     Box,
@@ -12,6 +12,7 @@ import {
     Typography,
     Paper,
     CircularProgress,
+    TextField,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
@@ -26,6 +27,7 @@ type Props = {
 };
 
 let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
+    const [searchTerm, setSearchTerm] = useState<string>("");
     const [updatingTopicId, setUpdatingTopicId] = React.useState<string | null>(null);
 
     const handleSelectTopic = React.useCallback(
@@ -58,27 +60,37 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
         [refreshTopicView],
     );
 
+    const filteredTopics = useMemo(() => {
+        return topics.filter((topic) => topic.topicMemo?.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [topics, searchTerm]);
+
     return (
         <div className={className}>
-            <Box height="100%">
-                <Typography variant="h6" gutterBottom>
-                    Topics
-                </Typography>
-
-                <TableContainer component={Paper} style={{ borderRadius: 0, height: "100%", overflowY: "auto" }}>
+            <Box height="100%" width="100%">
+                <TableContainer component={Paper} style={{ borderRadius: 0, height: "100%" }}>
                     <Table size="small" stickyHeader>
                         <TableHead
                             sx={{
-                                position: "sticky",
                                 top: 0,
-                                backgroundColor: "background.paper",
                                 zIndex: 1,
+                                position: "sticky",
+                                backgroundColor: "background.paper",
                             }}
                         >
                             <TableRow>
                                 <TableCell>Topic id</TableCell>
                                 <TableCell>Topic messages</TableCell>
-                                <TableCell>Memo</TableCell>
+                                <TableCell>
+                                    Memo
+                                    <TextField
+                                        size="small"
+                                        sx={{ ml: 1 }}
+                                        variant="standard"
+                                        value={searchTerm}
+                                        placeholder="Search"
+                                        onChange={(event) => setSearchTerm(event.target.value)}
+                                    />
+                                </TableCell>
                                 <TableCell>Network</TableCell>
                                 <TableCell>Expires</TableCell>
                                 <TableCell align="right">Actions</TableCell>
@@ -86,7 +98,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                         </TableHead>
 
                         <TableBody>
-                            {topics.map((topic) => (
+                            {filteredTopics.map((topic) => (
                                 <TableRow
                                     key={topic.topicId.toString()}
                                     hover
@@ -97,7 +109,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         <Typography variant="caption">{topic.topicId.toString()}</Typography>
                                     </TableCell>
 
-                                    <TableCell align="left" width={120}>
+                                    <TableCell align="left" width={150}>
                                         {topic.sequenceNumber?.toString() || "NaN"}
                                     </TableCell>
 
@@ -159,7 +171,8 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 };
 
 TopicList = styled(TopicList)`
-    height: 50vh;
+    width: 100%;
+    height: 100%;
 `;
 
 export { TopicList };

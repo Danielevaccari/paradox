@@ -1,6 +1,19 @@
 import { TopicId, TopicInfo } from "@hashgraph/sdk";
 import * as React from "react";
-import { Box, Button, Grid, Paper, Switch, TextField, Typography, Drawer } from "@mui/material";
+import {
+    Box,
+    Button,
+    Paper,
+    Switch,
+    TextField,
+    Typography,
+    Drawer,
+    Grid,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+} from "@mui/material";
 import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
 import { Message } from "../Hedera/types";
 import { Hedera } from "../Hedera/hedera";
@@ -21,6 +34,7 @@ let TopicView = ({ className }: Props) => {
     const [inputTopicId, setInputTopicId] = React.useState("0.0.");
     const [creatingTopic, setCreatingTopic] = React.useState(false);
     const [topics, setTopics] = React.useState<Array<TopicInfo>>([]);
+    const [openCreateTopicDialog, setOpenCreateTopicDialog] = React.useState(false);
     const [selectedTopic, setSelectedTopic] = React.useState<TopicInfo | null>(null);
     const [selectedTopicTopicMessages, setSelectedTopicTopicMessages] = React.useState<Array<Message>>([]);
 
@@ -95,8 +109,12 @@ let TopicView = ({ className }: Props) => {
             .then((topic: TopicInfo) => {
                 setTopics((prev) => [topic, ...prev]);
                 setMemo("");
+                Notifier.showSuccess("Topic created successfully");
             })
-            .finally(() => setCreatingTopic(false));
+            .finally(() => {
+                setCreatingTopic(false);
+                setOpenCreateTopicDialog(false);
+            });
     };
 
     const getTopicMessagesByTopicId = (topicId: TopicId | string) => {
@@ -122,7 +140,9 @@ let TopicView = ({ className }: Props) => {
         const topicInfos = await Promise.all(
             LocalStorageHelper.getStoredTopicIds().map(async (savedTopicId) => {
                 const topicId = TopicId.fromString(savedTopicId);
-                return await Hedera.getTopicInfo(topicId);
+                const topic = await Hedera.getTopicInfo(topicId);
+
+                return topic;
             }),
         );
 
@@ -137,6 +157,7 @@ let TopicView = ({ className }: Props) => {
         if (!selectedTopic) {
             return;
         }
+
         getTopicMessagesByTopicId(selectedTopic.topicId);
     }, [selectedTopic]);
 
@@ -153,97 +174,81 @@ let TopicView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Box sx={{ width: "100%" }}>
-                {/* Topic Controls */}
-                <Paper elevation={3} sx={{ p: 3, mb: 2, width: "50%" }}>
-                    <Grid container spacing={2} display="flex" alignItems="center" justifyContent="space-around">
-                        <Grid item xs={12}>
-                            <Typography variant="h6" gutterBottom>
-                                Existing Topic
-                            </Typography>
-
-                            <TextField fullWidth label="Topic id" variant="standard" value={inputTopicId} onChange={handleInputChange} />
-                        </Grid>
-
-                        <Grid item xs={3}>
-                            <Button
-                                fullWidth
-                                size="large"
-                                disableRipple
-                                color="secondary"
-                                variant="contained"
-                                disabled={loadingTopic || inputTopicId.length === 0}
-                                onClick={handleFetchTopic}
-                            >
-                                Fetch
-                            </Button>
-                        </Grid>
-                    </Grid>
-
-                    <Grid container spacing={2} sx={{ mt: 2 }}>
-                        <Grid item xs={12}>
-                            <Typography variant="h6" gutterBottom>
-                                Create Topic
-                            </Typography>
-
-                            <TextField fullWidth value={memo} variant="standard" label="Memo" onChange={onTopicMemoChange} />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                <Box display="flex" alignItems="center">
-                                    <Typography variant="body2" sx={{ mr: 1 }}>
-                                        Not admin
-                                    </Typography>
-
-                                    <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
-
-                                    <Typography variant="body2" sx={{ ml: 1 }}>
-                                        Admin
-                                    </Typography>
-                                </Box>
-
-                                <Box display="flex" alignItems="center">
-                                    <Typography variant="body2" sx={{ mr: 1 }}>
-                                        Public
-                                    </Typography>
-                                    <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
-                                    <Typography variant="body2" sx={{ ml: 1 }}>
-                                        Private
-                                    </Typography>
-                                </Box>
-
-                                <Button
-                                    size="large"
-                                    disableRipple
-                                    color="success"
-                                    variant="contained"
-                                    disabled={creatingTopic || memo.length === 0}
-                                    onClick={onCreateTopic}
+            <Box>
+                <div className="header">
+                    {/* Topic Controls */}
+                    <Paper elevation={3} sx={{ p: 2 }}>
+                        <Grid container spacing={3} alignItems="center">
+                            {/* ID Input and Fetch Button Group */}
+                            <Grid>
+                                <Box
+                                    sx={(theme) => ({
+                                        backgroundColor: theme.palette.background.default,
+                                        p: 2,
+                                    })}
                                 >
-                                    Create
-                                </Button>
-                            </Box>
-                        </Grid>
-                    </Grid>
-                </Paper>
+                                    <Grid container spacing={2} alignItems="center">
+                                        <Grid>
+                                            <TextField
+                                                size="small"
+                                                variant="outlined"
+                                                value={inputTopicId}
+                                                label="Enter Topic ID"
+                                                onChange={handleInputChange}
+                                            />
+                                        </Grid>
 
-                {/* Topic List Table */}
-                <TopicList //
-                    topics={topics}
-                    refreshTopicView={refresh}
-                    onSelectTopic={onSelectTopic}
-                    onDeleteTopic={onDeleteTopic}
-                />
+                                        <Grid>
+                                            <Button
+                                                fullWidth
+                                                size="large"
+                                                color="info"
+                                                variant="contained"
+                                                disabled={loadingTopic || inputTopicId.length === 0}
+                                                onClick={handleFetchTopic}
+                                            >
+                                                {loadingTopic ? "Loading..." : "Fetch Topic"}
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            </Grid>
+
+                            {/* Create New Topic Button Group */}
+                            <Grid>
+                                <Box
+                                    sx={(theme) => ({
+                                        backgroundColor: theme.palette.background.default,
+                                        p: 2,
+                                        borderRadius: 2,
+                                    })}
+                                >
+                                    <Button
+                                        fullWidth
+                                        size="large"
+                                        color="success"
+                                        variant="contained"
+                                        onClick={() => setOpenCreateTopicDialog(true)}
+                                    >
+                                        Create New Topic
+                                    </Button>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Paper>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="content">
+                    <TopicList topics={topics} refreshTopicView={refresh} onSelectTopic={onSelectTopic} onDeleteTopic={onDeleteTopic} />
+                </div>
 
                 {/* Right Drawer for Topic Messages */}
                 <Drawer
                     anchor="right"
                     open={Boolean(selectedTopic)}
                     onClose={() => setSelectedTopic(null)}
-                    PaperProps={{
-                        sx: { width: "40%", p: 2 },
-                    }}
+                    slotProps={{ paper: { sx: { width: "50%", padding: "1rem 0px 1rem 1rem" } } }}
                 >
                     {selectedTopic && (
                         <TopicMessagesList
@@ -254,12 +259,89 @@ let TopicView = ({ className }: Props) => {
                     )}
                 </Drawer>
             </Box>
+
+            {/* Dialog for Create Topic */}
+            <Dialog open={openCreateTopicDialog} onClose={() => setOpenCreateTopicDialog(false)}>
+                <DialogTitle>Create Topic</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        label="Memo"
+                        variant="standard"
+                        value={memo}
+                        onChange={onTopicMemoChange}
+                        helperText="Enter a memo for the topic"
+                    />
+
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                        <Grid>
+                            <Box display="flex" alignItems="center">
+                                <Typography variant="body2" sx={{ mr: 1 }}>
+                                    Not Admin
+                                </Typography>
+                                <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
+                                <Typography variant="body2" sx={{ ml: 1 }}>
+                                    Admin
+                                </Typography>
+                            </Box>
+                        </Grid>
+                        <Grid>
+                            <Box display="flex" alignItems="center">
+                                <Typography variant="body2" sx={{ mr: 1 }}>
+                                    Public
+                                </Typography>
+                                <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
+                                <Typography variant="body2" sx={{ ml: 1 }}>
+                                    Private
+                                </Typography>
+                            </Box>
+                        </Grid>
+
+                        <Grid>
+                            <Button
+                                fullWidth
+                                size="large"
+                                color="success"
+                                variant="contained"
+                                disabled={creatingTopic || memo.length === 0}
+                                onClick={onCreateTopic}
+                            >
+                                Create Topic
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button onClick={() => setOpenCreateTopicDialog(false)} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };
 
 TopicView = styled(TopicView)`
-    height: 100vh;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        > .header {
+            flex-shrink: 0;
+        }
+
+        > .content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+    }
 `;
 
 export { TopicView };

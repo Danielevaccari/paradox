@@ -30,47 +30,48 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 
     return (
         <div className={className}>
-            <Typography variant="h5" gutterBottom>
-                {topicId.toString() || "No topic selected"}
-            </Typography>
-
             {/* Message Input and Data Type */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, width: "100%" }}>
-                <Box sx={{ display: "flex", gap: 2, flexGrow: 1, maxWidth: 600 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, width: "100%" }}>
+                <Box sx={{ display: "flex", gap: 2, flexGrow: 1 }}>
                     <TextField
-                        fullWidth
-                        variant="standard"
+                        style={{ flexGrow: 1 }}
                         value={messageInput}
-                        placeholder="Add new topic message"
+                        placeholder={`Message to send to topic ${topicId.toString()}`}
                         onChange={(event) => setMessageInput(event.target.value)}
                     />
-                    <Button variant="contained" color="secondary" size="small" onClick={handleSend}>
+
+                    <Button
+                        size="small"
+                        color="primary"
+                        variant="contained"
+                        style={{ flexGrow: 0.5 }}
+                        disabled={messageInput === ""}
+                        onClick={handleSend}
+                    >
                         Send
                     </Button>
-                </Box>
 
-                <FormControl variant="standard" sx={{ minWidth: 150 }}>
-                    <InputLabel>Data type</InputLabel>
-                    <Select
-                        label="File Type"
-                        value={selectedDataType}
-                        onChange={(event) => setSelectedDataType(event.target.value as DataType)}
-                    >
-                        {Object.entries(DataType).map(
-                            ([key, value]) =>
-                                typeof value === "number" && (
-                                    <MenuItem key={value} value={value}>
-                                        {key}
-                                    </MenuItem>
-                                ),
-                        )}
-                    </Select>
-                </FormControl>
+                    <Button style={{ flexGrow: 0.5 }} variant="contained" color="secondary" size="small" onClick={handleSend}>
+                        Custom
+                    </Button>
+                </Box>
             </Box>
 
-            <Typography variant="h6" gutterBottom>
-                {`Topic Messages ${topicMessages.length}`}
-            </Typography>
+            <Select
+                sx={{ p: 1 }}
+                variant="standard"
+                value={selectedDataType}
+                onChange={(event) => setSelectedDataType(event.target.value as DataType)}
+            >
+                {Object.entries(DataType).map(
+                    ([key, value]) =>
+                        typeof value === "number" && (
+                            <MenuItem key={value} value={value}>
+                                {key}
+                            </MenuItem>
+                        ),
+                )}
+            </Select>
 
             {/* Scrollable Message List */}
             <Box className="scroll-container">
@@ -92,22 +93,26 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                             }
 
                             const timestamp = formatConsensusTime(msg.consensus_timestamp);
+
                             return (
                                 <ListItem key={index} alignItems="flex-start">
                                     <Box sx={{ width: "100%", wordBreak: "break-word" }}>
                                         <ListItemText primary={<Typography sx={{ whiteSpace: "pre-wrap" }}>{message}</Typography>} />
+
                                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                             <Typography fontSize={12} color="text.secondary">
                                                 {msg.sequence_number}
                                             </Typography>
+
                                             <Typography fontSize={12} color="text.secondary">
                                                 {timestamp}
                                             </Typography>
+
                                             <Typography fontSize={12} color="text.secondary">
                                                 {msg.payer_account_id}
                                             </Typography>
                                         </Box>
-                                        <hr />
+                                        <hr style={{ margin: 0 }} />
                                     </Box>
                                 </ListItem>
                             );

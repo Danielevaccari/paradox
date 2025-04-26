@@ -1,54 +1,54 @@
 {
-	"name": "my-app",
-	"version": "0.1.0",
-	"private": true,
-	"dependencies": {
-		"@emotion/react": "^11.14.0",
-		"@emotion/styled": "^11.14.0",
-		"@hashgraph/sdk": "^2.63.0",
-		"@mui/material": "^5.17.1",
-		"@mui/styled-engine-sc": "^7.0.2",
-		"notistack": "^3.0.2",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
-		"react-router-dom": "^7.5.1",
-		"styled-components": "^6.1.17"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.25.0",
-		"@types/jest": "^27.5.2",
-		"@types/node": "^18.19.87",
-		"@types/react": "^18.3.20",
-		"@types/react-dom": "^18.3.6",
-		"@types/react-router-dom": "^5.3.3",
-		"@typescript-eslint/eslint-plugin": "^8.31.0",
-		"@typescript-eslint/parser": "^8.31.0",
-		"@vitejs/plugin-react": "^4.0.0",
-		"eslint": "^8.57.1",
-		"eslint-plugin-react": "^7.37.5",
-		"eslint-plugin-react-hooks": "^5.2.0",
-		"globals": "^16.0.0",
-		"prettier": "^3.5.3",
-		"typescript": "^4.9.5",
-		"typescript-eslint": "^8.30.1",
-		"vite": "^5.2.0"
-	},
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview",
-		"test": "echo \"No test runner configured\" && exit 0"
-	},
-	"browserslist": {
-		"production": [
-			">0.2%",
-			"not dead",
-			"not op_mini all"
-		],
-		"development": [
-			"last 1 chrome version",
-			"last 1 firefox version",
-			"last 1 safari version"
-		]
-	}
+    "name": "my-app",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
+        "@hashgraph/sdk": "^2.63.0",
+        "@mui/icons-material": "^7.0.2",
+        "@mui/material": "^7.0.2",
+        "notistack": "^3.0.2",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^7.5.1",
+        "styled-components": "^6.1.17"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.25.0",
+        "@types/jest": "^27.5.2",
+        "@types/node": "^18.19.87",
+        "@types/react": "^18.3.20",
+        "@types/react-dom": "^18.3.6",
+        "@types/react-router-dom": "^5.3.3",
+        "@typescript-eslint/eslint-plugin": "^8.31.0",
+        "@typescript-eslint/parser": "^8.31.0",
+        "@vitejs/plugin-react": "^4.0.0",
+        "eslint": "^8.57.1",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "globals": "^16.0.0",
+        "prettier": "^3.5.3",
+        "typescript": "^4.9.5",
+        "typescript-eslint": "^8.30.1",
+        "vite": "^5.2.0"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "echo \"No test runner configured\" && exit 0"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
 }

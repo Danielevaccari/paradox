@@ -1,118 +1,27 @@
-import "./App.css";
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
-import { TopicView } from "./Views/TopicView";
-import { styled } from "@mui/material/styles";
+import { BrowserRouter } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
-import { TransactionView } from "./Views/TransactionsView";
-import { ConfigurationView } from "./Views/ConfigurationView";
-import { Hedera } from "./Hedera/hedera";
-
-const drawerWidth = 200;
-
-const StyledNavLink = styled(NavLink)(({ theme }) => ({
-    textDecoration: "none",
-    color: theme.palette.text.primary,
-    width: "100%",
-    "&.active": {
-        backgroundColor: theme.palette.action.selected,
-    },
-    "&:hover": {
-        backgroundColor: theme.palette.action.hover,
-    },
-}));
+import { AppRoutes } from "./Main/AppRoutes";
+import { AppNavigationDrawer } from "./Main/AppNavigationDrawer";
 
 const App = () => {
     return (
         <BrowserRouter>
-            <Box sx={{ display: "flex" }}>
-                <Drawer
-                    anchor="left"
-                    variant="permanent"
-                    sx={{
-                        width: drawerWidth,
-                        flexShrink: 0,
-                        "& .MuiDrawer-paper": {
-                            width: drawerWidth,
-                            boxSizing: "border-box",
-                            display: "flex",
-                            flexDirection: "column",
-                        },
-                    }}
-                >
-                    {/* Drawer Top Content */}
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="h6" sx={{ mb: 1 }}>
-                            Paradox
-                        </Typography>
-
-                        <Typography variant="body2">{` ${Hedera.getNetworkName().toUpperCase()} `}</Typography>
-
-                        {process.env.NODE_ENV === "development" && (
-                            <Typography variant="caption" color="yellow" fontWeight="bold">
-                                Debug Build
-                            </Typography>
-                        )}
-                    </Box>
-
-                    <List>
-                        <ListItem disablePadding>
-                            <StyledNavLink to="/">
-                                <ListItemButton>
-                                    <ListItemText primary="Topics" />
-                                </ListItemButton>
-                            </StyledNavLink>
-                        </ListItem>
-
-                        <ListItem disablePadding>
-                            <StyledNavLink to="/transaction">
-                                <ListItemButton>
-                                    <ListItemText primary="Transactions" />
-                                </ListItemButton>
-                            </StyledNavLink>
-                        </ListItem>
-
-                        <ListItem disablePadding>
-                            <StyledNavLink to="/configuration">
-                                <ListItemButton>
-                                    <ListItemText primary="Configuration" />
-                                </ListItemButton>
-                            </StyledNavLink>
-                        </ListItem>
-                    </List>
-
-                    <Box sx={{ flexGrow: 1 }} />
-
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="caption" color="text.secondary">
-                            © Vaccari Oy
-                        </Typography>
-                    </Box>
-                </Drawer>
+            <Box sx={{ display: "flex", width: "100%", padding: 0, margin: 0, height: "100vh" }}>
+                <AppNavigationDrawer />
 
                 <Box
                     component="main"
                     sx={{
                         flexGrow: 1,
-                        height: "100vh",
-                        overflow: "auto",
+                        height: "100%",
                         bgcolor: "background.default",
                     }}
                 >
-                    <Routes>
-                        <Route path="/" element={<TopicView />} />
-                        <Route path="/transaction" element={<TransactionView />} />
-                        <Route path="/configuration" element={<ConfigurationView />} />
-                    </Routes>
+                    <AppRoutes />
                 </Box>
             </Box>
         </BrowserRouter>
     );
 };
 
-export default App;
+export { App };

@@ -1,87 +1,92 @@
-import { createTheme } from "@mui/material";
+import { createTheme, PaletteMode } from "@mui/material";
 
-const lightTheme = createTheme({
-    palette: {
-        mode: "light",
-        background: {
-            default: "#f0f2f5", // Soft bluish-gray background
-            paper: "#ffffff", // Neutral white for paper
-        },
-        text: {
-            primary: "#2e3c43", // Gentle dark gray-blue
-            secondary: "#546e7a", // Muted slate
-        },
-        primary: {
-            main: "#90a4ae", // Soft steel blue
-        },
-        secondary: {
-            main: "#a1887f", // Warm, muted brown
-        },
+const Colors = {
+    light: {
+        backgroundDefault: "#f5f5f5", // very soft gray
+        backgroundPaper: "#ffffff", // white paper
+        textPrimary: "#1a1a1a", // almost black for excellent readability
+        textSecondary: "#5f6368", // neutral muted gray
+        primaryMain: "#1976d2", // enterprise blue (material blue 700)
+        secondaryMain: "#6c757d", // neutral dark gray (like Bootstrap's secondary)
     },
-    shape: {
-        borderRadius: 0, // 🔥 This sets borderRadius to 0 globally
+    dark: {
+        backgroundDefault: "#121212", // dark background
+        backgroundPaper: "#1e1e1e", // slightly lighter for paper
+        textPrimary: "#e0e0e0", // light text
+        textSecondary: "#a0a0a0", // softer secondary
+        textDisabled: "#6d6d6d", // accessible disabled
+        primaryMain: "#90caf9", // light blue for dark mode
+        secondaryMain: "#b0bec5", // soft muted gray-blue
     },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    boxShadow: "none", // Matte look — no shadows
-                },
+};
+
+const commonTypography = {
+    fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`,
+    fontSize: 14,
+};
+
+const commonShape = {
+    borderRadius: 0,
+};
+
+const commonComponents = {
+    MuiPaper: {
+        styleOverrides: {
+            root: {
+                boxShadow: "none",
             },
         },
     },
-    typography: {
-        fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`,
-        fontSize: 14,
-    },
-});
+};
 
-const darkTheme = createTheme({
-    palette: {
-        mode: "dark",
-        background: {
-            default: "#1c1c1e", // Lighter than #121212
-            paper: "#2a2a2d", // Lighter than #1d1d1d
-        },
-        text: {
-            primary: "#f0f0f0", // Slightly lighter
-            secondary: "#b0b0b0", // Softer gray
-            disabled: "#888888", // Easier contrast
-        },
-        primary: {
-            main: "#90a4ae", // Softer blue-gray
-        },
-        secondary: {
-            main: "#bcaaa4", // Softer warm tone
-        },
-    },
-    typography: {
-        fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`,
-        fontSize: 14,
-        allVariants: {
-            color: "#f0f0f0",
-        },
-    },
-    shape: {
-        borderRadius: 0, // 🔥 This sets borderRadius to 0 globally
-    },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    boxShadow: "none",
-                    backgroundColor: "#2a2a2d", // Match paper
-                },
+const createCustomTheme = (mode: PaletteMode) => {
+    const paletteColors = mode === "light" ? Colors.light : Colors.dark;
+
+    return createTheme({
+        palette: {
+            mode,
+            background: {
+                default: paletteColors.backgroundDefault,
+                paper: paletteColors.backgroundPaper,
+            },
+            text: {
+                primary: paletteColors.textPrimary,
+                secondary: paletteColors.textSecondary,
+                ...(mode === "dark" && { disabled: Colors.dark.textDisabled }),
+            },
+            primary: {
+                main: paletteColors.primaryMain,
+            },
+            secondary: {
+                main: paletteColors.secondaryMain,
             },
         },
-        MuiTypography: {
-            styleOverrides: {
-                root: {
-                    color: "#f0f0f0",
+        typography: {
+            ...commonTypography,
+            ...(mode === "dark" && {
+                allVariants: {
+                    color: paletteColors.textPrimary,
                 },
-            },
+            }),
         },
-    },
-});
+        shape: commonShape,
+        components: {
+            ...commonComponents,
+            ...(mode === "dark" && {
+                MuiTypography: {
+                    styleOverrides: {
+                        root: {
+                            color: paletteColors.textPrimary,
+                        },
+                    },
+                },
+            }),
+        },
+    });
+};
 
-export { lightTheme, darkTheme };
+const lightTheme = createCustomTheme("light");
+
+const darkTheme = createCustomTheme("dark");
+
+export { lightTheme, darkTheme, Colors };

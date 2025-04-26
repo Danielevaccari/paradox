@@ -19,4 +19,13 @@ export class LocalStorageHelper {
 
         localStorage.setItem("savedTopicIds", JSON.stringify(updated));
     }
+
+    static getThemeMode(): "light" | "dark" {
+        const mode = localStorage.getItem("themeMode");
+        return mode === "light" || mode === "dark" ? mode : "dark";
+    }
+
+    static setThemeMode(mode: "light" | "dark"): void {
+        localStorage.setItem("themeMode", mode);
+    }
 }
