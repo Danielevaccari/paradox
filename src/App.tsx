@@ -6,7 +6,7 @@ import { AppNavigationDrawer } from "./Main/AppNavigationDrawer";
 const App = () => {
     return (
         <BrowserRouter>
-            <Box sx={{ display: "flex", width: "100%", padding: 0, margin: 0, height: "100vh" }}>
+            <Box sx={{ display: "flex", width: "100%", height: "100vh" }}>
                 <AppNavigationDrawer />
 
                 <Box

@@ -10,31 +10,6 @@ body {
     color: #000; /* Optional: ensure good contrast by default */
 }
 
-/* Monospaced font for code blocks */
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
-
-/* Scrollbar Styling - WebKit browsers */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: rgba(136, 136, 136, 0.7);
-    border-radius: 4px; /* Slight rounding for better aesthetics */
-    transition: background-color 0.2s;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(85, 85, 85, 0.9);
-}
-
 /* Improve box sizing globally */
 *,
 *::before,
