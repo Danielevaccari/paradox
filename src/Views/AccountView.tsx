@@ -9,10 +9,10 @@ import { TransactionList } from "../components/Transactions/TransactionList.";
 type Props = { className?: string };
 
 let AccountView = ({ className }: Props) => {
-    const [accounts, setAccounts] = React.useState<Array<AccountInfo>>([]);
-    const [selectedAccountId, setSelectedAccountId] = React.useState<AccountId | null>(null);
-    const [accountIdInput, setAccountIdInput] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [accounts, setAccounts] = React.useState<Array<AccountInfo>>([]);
+    const [accountIdInput, setAccountIdInput] = React.useState<string>("");
+    const [selectedAccountId, setSelectedAccountId] = React.useState<AccountId | null>(null);
 
     const fetchAccountInfo = async (accountId: AccountId) => {
         try {
@@ -26,17 +26,8 @@ let AccountView = ({ className }: Props) => {
         }
     };
 
-    React.useEffect(() => {
-        const currentAccountId = Hedera.getAccountId();
-        if (currentAccountId) {
-            const id = AccountId.fromString(currentAccountId);
-            setSelectedAccountId(id);
-            fetchAccountInfo(id);
-        }
-    }, []);
-
-    const handleAccountIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAccountIdInput(e.target.value);
+    const handleAccountIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAccountIdInput(event.target.value);
     };
 
     const handleSearchAccount = () => {
@@ -60,6 +51,16 @@ let AccountView = ({ className }: Props) => {
             return accounts.find((account) => account.accountId.equals(selectedAccountId));
         }
     }, [accounts, selectedAccountId]);
+
+    React.useEffect(() => {
+        const currentAccountId = Hedera.getAccountId();
+
+        if (currentAccountId) {
+            const id = AccountId.fromString(currentAccountId);
+            setSelectedAccountId(id);
+            fetchAccountInfo(id);
+        }
+    }, []);
 
     return (
         <div className={className}>

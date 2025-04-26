@@ -193,7 +193,7 @@ export class Hedera {
         return await new AccountInfoQuery().setAccountId(accountId).execute(this.client);
     }
 
-    static async getAccountTransactions(accountId: AccountId | string, limit = 25, order: "asc" | "desc" = "desc") {
+    static async getAccountTransactions(accountId: AccountId | string, limit = 100, order: "asc" | "desc" = "desc") {
         const id = typeof accountId === "string" ? accountId : accountId.toString();
         const url = `https://testnet.mirrornode.hedera.com/api/v1/transactions?account.id=${id}&limit=${limit}&order=${order}`;
 
@@ -282,5 +282,9 @@ export class Hedera {
     static async mirrorNodeGetTopicMessagesByTopicId(topicId: TopicId | string) {
         const raw = await this.fetchRawMessagesFromMirrorNode(topicId);
         return this.assembleChunkedMessages(raw);
+    }
+
+    static tinybarToHbar(tinybar: number) {
+        return (tinybar / 1e8).toFixed(6); // 1 HBAR = 10^8 tinybars
     }
 }

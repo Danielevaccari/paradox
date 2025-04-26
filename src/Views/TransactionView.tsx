@@ -5,6 +5,7 @@ import { AccountId } from "@hashgraph/sdk";
 import { Hedera } from "../Hedera/hedera";
 import { Notifier } from "../Notifications/notifications";
 import { TransactionList } from "../components/Transactions/TransactionList.";
+import { hbarLogo } from "../Hedera/constants";
 
 type Props = {
     className?: string;
@@ -61,7 +62,7 @@ let TransactionView = ({ className }: Props) => {
                                 fullWidth
                                 type="number"
                                 variant="standard"
-                                label="Amount (HBAR)"
+                                label={`Amount ${hbarLogo}`}
                                 value={transferAmount}
                                 onChange={(event) => setTransferAmount(Number(event.target.value))}
                             />
