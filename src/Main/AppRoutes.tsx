@@ -8,9 +8,9 @@ const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<TopicView />} />
-            <Route path="/Account" element={<AccountView />} />
-            <Route path="/transaction" element={<TransactionView />} />
-            <Route path="/configuration" element={<ConfigurationView />} />
+            <Route path="/Accounts" element={<AccountView />} />
+            <Route path="/transactions" element={<TransactionView />} />
+            <Route path="/Settings" element={<ConfigurationView />} />
         </Routes>
     );
 };

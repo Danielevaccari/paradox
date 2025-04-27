@@ -1,17 +1,17 @@
 import * as React from "react";
-import { Typography, Paper, Grid, TextField, Button, CircularProgress } from "@mui/material";
+import { Typography, Paper, Grid, TextField, Button, Divider, Box } from "@mui/material";
 import styled from "styled-components";
 import { Hedera } from "../Hedera/hedera";
 import { AccountId, AccountInfo } from "@hashgraph/sdk";
 import { Notifier } from "../Notifications/notifications";
-import { TransactionList } from "../components/Transactions/TransactionList.";
+import { formatConsensusTime } from "../Utility/date";
 
 type Props = { className?: string };
 
 let AccountView = ({ className }: Props) => {
-    const [loading, setLoading] = React.useState<boolean>(false);
-    const [accounts, setAccounts] = React.useState<Array<AccountInfo>>([]);
-    const [accountIdInput, setAccountIdInput] = React.useState<string>("");
+    const [loading, setLoading] = React.useState(false);
+    const [accounts, setAccounts] = React.useState<AccountInfo[]>([]);
+    const [accountIdInput, setAccountIdInput] = React.useState("");
     const [selectedAccountId, setSelectedAccountId] = React.useState<AccountId | null>(null);
 
     const fetchAccountInfo = async (accountId: AccountId) => {
@@ -40,17 +40,13 @@ let AccountView = ({ className }: Props) => {
         }
     };
 
-    const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
-            handleSearchAccount();
-        }
-    };
-
     const selectedAccount = React.useMemo(() => {
         if (selectedAccountId) {
             return accounts.find((account) => account.accountId.equals(selectedAccountId));
         }
     }, [accounts, selectedAccountId]);
+
+    console.log("Selected Account: ", selectedAccount);
 
     React.useEffect(() => {
         const currentAccountId = Hedera.getAccountId();
@@ -64,58 +60,115 @@ let AccountView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Paper elevation={3} sx={{ padding: 2, marginBottom: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid>
-                        <TextField
-                            size="small"
-                            label="Account ID"
-                            fullWidth
-                            variant="outlined"
-                            value={accountIdInput}
-                            onChange={handleAccountIdChange}
-                            onKeyPress={handleKeyPress}
-                            placeholder="0.0.x"
-                        />
-                    </Grid>
-                    <Grid>
-                        <Button variant="contained" fullWidth disabled={!accountIdInput || loading} onClick={handleSearchAccount}>
-                            {loading ? <CircularProgress size={24} /> : "Search Account"}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Paper>
-
-            {selectedAccount && (
-                <Paper elevation={3} sx={{ padding: 2, marginBottom: 2 }}>
-                    <Typography variant="h6" gutterBottom>
-                        Account Details
-                    </Typography>
-                    <Grid container spacing={2}>
+            {/* Fixed Top Content */}
+            <Box sx={{ flexShrink: 0 }}>
+                {/* Search Area */}
+                <Paper elevation={3} sx={{ p: "1rem", mb: "1rem" }}>
+                    <Grid container spacing={2} alignItems="center">
                         <Grid>
-                            <Typography>
-                                <strong>Account ID:</strong> {selectedAccount.accountId.toString()}
-                            </Typography>
-                            <Typography>
-                                <strong>Balance:</strong> {selectedAccount.balance?.toString()}
-                            </Typography>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                variant="outlined"
+                                value={accountIdInput}
+                                placeholder="0.0.xxxx"
+                                label="Search Account by ID"
+                                onChange={handleAccountIdChange}
+                            />
                         </Grid>
-                        <Grid>
-                            <Typography>
-                                <strong>Memo:</strong> {selectedAccount.accountMemo || "N/A"}
-                            </Typography>
+                        <Grid sx={{ display: "flex", justifyContent: "flex-end" }}>
+                            <Button size="large" variant="contained" disabled={!accountIdInput || loading} onClick={handleSearchAccount}>
+                                Search
+                            </Button>
                         </Grid>
                     </Grid>
                 </Paper>
-            )}
 
-            {selectedAccountId && <TransactionList accountId={selectedAccountId} />}
+                {/* Account Details */}
+                {selectedAccount && (
+                    <Paper elevation={3} sx={{ p: "1rem" }}>
+                        <Typography gutterBottom>Account Overview</Typography>
+
+                        <Divider sx={{ mb: 3 }} />
+
+                        <Grid
+                            container
+                            spacing={2}
+                            display="flex"
+                            alignItems="center"
+                            p="0rem 1rem 0rem 1rem"
+                            justifyContent="space-between"
+                        >
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Account ID
+                                    </Typography>
+                                    <Typography variant="body1">{selectedAccount.accountId.toString()}</Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Balance
+                                    </Typography>
+                                    <Typography variant="body1">{selectedAccount.balance?.toString()}</Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Account Memo
+                                    </Typography>
+                                    <Typography variant="body1">{selectedAccount.accountMemo || "N/A"}</Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Stake node
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        {selectedAccount.stakingInfo?.stakedNodeId?.toString() ?? "Not staking"}
+                                    </Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Pending reward
+                                    </Typography>
+                                    <Typography variant="body1">{selectedAccount.stakingInfo?.pendingReward?.toString()}</Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Expiration Time
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        {formatConsensusTime(selectedAccount.expirationTime.toString())}
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Paper>
+                )}
+            </Box>
         </div>
     );
 };
 
 AccountView = styled(AccountView)`
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    width: 100%;
 `;
 
 export { AccountView };

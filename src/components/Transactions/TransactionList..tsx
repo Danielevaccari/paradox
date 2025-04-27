@@ -32,20 +32,16 @@ let TransactionList = ({ className, accountId }: Props) => {
 
     return (
         <div className={className}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                    Transactions {accountId.toString()}
-                </Typography>
+            <Paper elevation={3}>
                 {transactions.length > 0 && (
-                    <Table>
+                    <Table stickyHeader>
                         <TableHead>
                             <TableRow>
                                 <TableCell></TableCell>
-                                <TableCell>ID</TableCell>
+                                <TableCell>Tx ID</TableCell>
                                 <TableCell>Amount</TableCell>
                                 <TableCell>Txs</TableCell>
                                 <TableCell>Type</TableCell>
-                                <TableCell>Result</TableCell>
                                 <TableCell>Fee</TableCell>
                                 <TableCell>Node</TableCell>
                                 <TableCell>Timestamp</TableCell>
@@ -53,7 +49,7 @@ let TransactionList = ({ className, accountId }: Props) => {
                         </TableHead>
                         <TableBody>
                             {transactions.map((tx) => (
-                                <TransferRow key={tx.transaction_id} transaction={tx} />
+                                <TransferRow key={tx.transaction_id} accountId={accountId} transaction={tx} />
                             ))}
                         </TableBody>
                     </Table>

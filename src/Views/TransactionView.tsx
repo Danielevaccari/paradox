@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Typography, Paper, TextField, Button, Grid } from "@mui/material";
+import { Box, Paper, TextField, Button, Grid } from "@mui/material";
 import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
 import { Hedera } from "../Hedera/hedera";
@@ -13,10 +13,12 @@ type Props = {
 
 let TransactionView = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
-    const [transferAmount, setTransferAmount] = React.useState<number>(0);
+    const [fetchTransactions, setFetchTransactions] = React.useState(false); // state to trigger fetching transactions
+    const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
+    const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string>(Hedera.getAccountId());
 
-    const onacceptTransaction = async () => {
-        if (transferAmount <= 0) {
+    const onAcceptTransaction = async () => {
+        if (transferAmount === null || transferAmount <= 0) {
             Notifier.showWarning("Amount must be greater than zero.");
             return;
         }
@@ -26,7 +28,7 @@ let TransactionView = ({ className }: Props) => {
             const transactionId = await Hedera.sendTransaction(destinationAccountId, transferAmount);
 
             setToAccountId("");
-            setTransferAmount(0);
+            setTransferAmount(null);
 
             Notifier.showSuccess(`Transaction successful! Transaction Id: ${transactionId}`);
         } catch (error) {
@@ -34,72 +36,93 @@ let TransactionView = ({ className }: Props) => {
         }
     };
 
+    const handleGetTransactions = () => {
+        setFetchTransactions(true); // Trigger fetching transactions
+    };
+
     return (
         <div className={className}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {/* Send Transaction Form */}
-                <Paper elevation={3} sx={{ p: 3 }}>
-                    <Typography variant="h5" gutterBottom>
-                        Create a Transaction
-                    </Typography>
-
+            <Box sx={{ display: "flex" }}>
+                <Paper elevation={3} sx={{ p: "1rem", width: "100%" }}>
                     <Grid container spacing={2} alignItems="center">
+                        <Grid justifyContent="left">
+                            <TextField
+                                fullWidth
+                                size="small"
+                                variant="outlined"
+                                label="Account ID"
+                                value={accountIdForTransactionQuery}
+                                onChange={(event) => setAccountIdForTransactionQuery(event.target.value)}
+                            />
+                        </Grid>
+
+                        <Button variant="contained" onClick={handleGetTransactions}>
+                            Get Transactions
+                        </Button>
+
                         <Grid>
-                            <Paper elevation={3} sx={{ p: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    variant="standard"
-                                    disabled
-                                    label="Sending Account Id"
-                                    value={Hedera.getAccountId()}
-                                    InputProps={{ readOnly: true }}
-                                />
-                            </Paper>
+                            <TextField
+                                disabled
+                                fullWidth
+                                size="small"
+                                variant="outlined"
+                                label="From Account ID"
+                                value={Hedera.getAccountId()}
+                            />
                         </Grid>
 
                         <Grid>
                             <TextField
                                 fullWidth
+                                size="small"
                                 type="number"
-                                variant="standard"
+                                variant="outlined"
+                                value={transferAmount ?? ""}
                                 label={`Amount ${hbarLogo}`}
-                                value={transferAmount}
                                 onChange={(event) => setTransferAmount(Number(event.target.value))}
                             />
                         </Grid>
 
                         <Grid>
-                            <Paper elevation={3} sx={{ p: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    variant="standard"
-                                    label="Receiving Account Id"
-                                    value={toAccountId}
-                                    onChange={(e) => setToAccountId(e.target.value)}
-                                />
-                            </Paper>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                variant="outlined"
+                                value={toAccountId}
+                                label="To Account ID"
+                                onChange={(event) => setToAccountId(event.target.value)}
+                            />
+                        </Grid>
+
+                        <Grid sx={{ display: "flex", justifyContent: "flex-end" }}>
+                            <Button
+                                fullWidth
+                                color="info"
+                                size="medium"
+                                variant="contained"
+                                disabled={toAccountId.length <= 0 || transferAmount === null || transferAmount <= 0}
+                                onClick={onAcceptTransaction}
+                            >
+                                Send
+                            </Button>
                         </Grid>
                     </Grid>
-
-                    <Grid sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                        <Button
-                            color="primary"
-                            variant="contained"
-                            disabled={toAccountId.length <= 0 || transferAmount <= 0}
-                            onClick={onacceptTransaction}
-                        >
-                            Send
-                        </Button>
-                    </Grid>
                 </Paper>
-
-                <TransactionList accountId={Hedera.getAccountId()} />
             </Box>
+
+            {/* Scrollable Transaction List */}
+            {fetchTransactions && (
+                <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
+                    <TransactionList accountId={accountIdForTransactionQuery} />
+                </Box>
+            )}
         </div>
     );
 };
 
 TransactionView = styled(TransactionView)`
+    display: flex;
+    flex-direction: column;
     height: 100%;
     width: 100%;
 `;

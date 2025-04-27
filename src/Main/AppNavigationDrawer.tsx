@@ -63,7 +63,7 @@ const AppNavigationDrawer = () => {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <StyledNavLink to="/Account">
+                    <StyledNavLink to="/Accounts">
                         <ListItemButton>
                             <ListItemText primary="Accounts" />
                         </ListItemButton>
@@ -71,7 +71,7 @@ const AppNavigationDrawer = () => {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <StyledNavLink to="/transaction">
+                    <StyledNavLink to="/transactions">
                         <ListItemButton>
                             <ListItemText primary="Transactions" />
                         </ListItemButton>
@@ -79,9 +79,9 @@ const AppNavigationDrawer = () => {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <StyledNavLink to="/configuration">
+                    <StyledNavLink to="/settings">
                         <ListItemButton>
-                            <ListItemText primary="Configuration" />
+                            <ListItemText primary="Settings" />
                         </ListItemButton>
                     </StyledNavLink>
                 </ListItem>

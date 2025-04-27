@@ -6,9 +6,8 @@ import { Hedera } from "../Hedera/hedera";
 type Props = { className?: string };
 
 let ConfigurationView = ({ className }: Props) => {
-    const [accountId, setAccountId] = React.useState("");
     const [privateKey, setPrivateKey] = React.useState("");
-    // const [accountId, setAccountId] = React.useState(Hedera.getAccountId());
+    const [accountId, setAccountId] = React.useState(Hedera.getAccountId());
     // const [privateKey, setPrivateKey] = React.useState(Hedera.getPrivateKey().toStringDer());
 
     const handleSave = () => {
@@ -24,7 +23,7 @@ let ConfigurationView = ({ className }: Props) => {
     return (
         <div className={className}>
             <Box>
-                <Paper elevation={3} sx={{ p: 3, maxWidth: 600 }}>
+                <Paper elevation={3} sx={{ p: "1rem" }}>
                     <Typography variant="h5" gutterBottom>
                         Hedera account info
                     </Typography>
@@ -32,7 +31,7 @@ let ConfigurationView = ({ className }: Props) => {
                         <Grid>
                             <TextField
                                 fullWidth
-                                variant="standard"
+                                variant="outlined"
                                 label="Account Id"
                                 value={accountId}
                                 onChange={(event) => setAccountId(event.target.value)}
@@ -42,7 +41,7 @@ let ConfigurationView = ({ className }: Props) => {
                         <Grid>
                             <TextField
                                 fullWidth
-                                variant="standard"
+                                variant="outlined"
                                 label="Private Key"
                                 value={privateKey}
                                 onChange={(event) => setPrivateKey(event.target.value)}

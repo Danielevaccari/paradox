@@ -1,4 +1,4 @@
-import { Box, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { Box, Collapse, IconButton, TableCell, TableRow, Typography, useTheme } from "@mui/material";
 import * as React from "react";
 import { hbarLogo } from "../../Hedera/constants";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
@@ -6,20 +6,19 @@ import { Hedera } from "../../Hedera/hedera";
 import { formatDateToDDMMYYYYhhmm } from "../../Utility/date";
 import { Transaction } from "../../Hedera/types";
 import { SuccessOrFail } from "../../Hedera/enumerations";
+import { AccountId } from "@hashgraph/sdk";
 
 type Props = {
+    accountId: AccountId | string;
     transaction: Transaction;
 };
 
-const TransferRow = ({ transaction }: Props) => {
+const TransferRow = ({ transaction, accountId }: Props) => {
     const [open, setOpen] = React.useState(false);
 
-    const negativeTransfersSummed = transaction.transfers?.reduce((acc, transfer) => {
-        if (transfer.amount < 0) {
-            return acc + transfer.amount;
-        }
-        return acc;
-    }, 0);
+    const theme = useTheme();
+
+    const transferWithCurrentAccountId = transaction.transfers.find((transfer) => transfer.account === accountId)?.amount || 0;
 
     return (
         <>
@@ -27,7 +26,8 @@ const TransferRow = ({ transaction }: Props) => {
                 <TableCell
                     style={{
                         width: "10px",
-                        backgroundColor: transaction.result === SuccessOrFail.Success ? "lightgreen" : "salmon",
+                        backgroundColor:
+                            transaction.result === SuccessOrFail.Success ? theme.palette.success.light : theme.palette.error.light,
                     }}
                 />
                 <TableCell>
@@ -36,35 +36,30 @@ const TransferRow = ({ transaction }: Props) => {
                     </IconButton>
                     {transaction.transaction_id}
                 </TableCell>
-                <TableCell>{`${Hedera.tinybarToHbar(negativeTransfersSummed)} ${hbarLogo}`}</TableCell>
+                <TableCell>{`${Hedera.tinybarToHbar(transferWithCurrentAccountId)} ${hbarLogo}`}</TableCell>
                 <TableCell>{transaction.transfers.length}</TableCell>
                 <TableCell>{transaction.name}</TableCell>
-                {/* Removed transaction.result cell because now we show it as a color */}
                 <TableCell>{`${Hedera.tinybarToHbar(transaction.charged_tx_fee)} ${hbarLogo}`}</TableCell>
                 <TableCell>{transaction.node}</TableCell>
                 <TableCell>{formatDateToDDMMYYYYhhmm(new Date(Number(transaction.consensus_timestamp) * 1000))}</TableCell>
             </TableRow>
 
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box margin={1}>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell width={300}>Account</TableCell>
-                                        <TableCell>Amount</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {transaction.transfers?.map((transfer, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{transfer.account}</TableCell>
-                                            <TableCell>{`${Hedera.tinybarToHbar(transfer.amount)} ${hbarLogo}`}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                        <Box margin={2}>
+                            {transaction.transfers?.map((transfer, index) => (
+                                <Box
+                                    key={index}
+                                    display="flex"
+                                    padding="0.25rem 1rem"
+                                    justifyContent="space-between"
+                                    borderBottom={`1px solid ${theme.palette.divider}`}
+                                >
+                                    <Typography color="text.secondary">{transfer.account}</Typography>
+                                    <Typography color="text.secondary">{`${Hedera.tinybarToHbar(transfer.amount)} ${hbarLogo}`}</Typography>
+                                </Box>
+                            ))}
                         </Box>
                     </Collapse>
                 </TableCell>
