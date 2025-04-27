@@ -10,11 +10,11 @@ type Props = { className?: string };
 
 let AccountView = ({ className }: Props) => {
     const [loading, setLoading] = React.useState(false);
-    const [accounts, setAccounts] = React.useState<AccountInfo[]>([]);
     const [accountIdInput, setAccountIdInput] = React.useState("");
+    const [accounts, setAccounts] = React.useState<AccountInfo[]>([]);
     const [selectedAccountId, setSelectedAccountId] = React.useState<AccountId | null>(null);
 
-    const fetchAccountInfo = async (accountId: AccountId) => {
+    const fetchAccountInfo = React.useCallback(async (accountId: AccountId) => {
         try {
             setLoading(true);
             const accountInfo = await Hedera.getAccountInfo(accountId);
@@ -24,13 +24,13 @@ let AccountView = ({ className }: Props) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const handleAccountIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAccountIdChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setAccountIdInput(event.target.value);
-    };
+    }, []);
 
-    const handleSearchAccount = () => {
+    const handleSearchAccount = React.useCallback(() => {
         try {
             const id = AccountId.fromString(accountIdInput);
             setSelectedAccountId(id);
@@ -38,7 +38,7 @@ let AccountView = ({ className }: Props) => {
         } catch (error) {
             Notifier.showError(error);
         }
-    };
+    }, [accountIdInput, fetchAccountInfo]);
 
     const selectedAccount = React.useMemo(() => {
         if (selectedAccountId) {
@@ -54,7 +54,7 @@ let AccountView = ({ className }: Props) => {
             setSelectedAccountId(id);
             fetchAccountInfo(id);
         }
-    }, []);
+    }, [fetchAccountInfo]);
 
     return (
         <div className={className}>
