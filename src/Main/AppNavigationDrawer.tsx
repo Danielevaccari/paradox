@@ -2,9 +2,10 @@ import { styled, useTheme } from "@mui/material/styles";
 import { NavLink } from "react-router-dom";
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, IconButton } from "@mui/material";
 import SunnyIcon from "@mui/icons-material/Sunny";
-import { Bedtime } from "@mui/icons-material";
+import { Bedtime, FileDownload, Save } from "@mui/icons-material";
 import { Hedera } from "../Hedera/hedera";
 import { useColorMode } from "../main";
+import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 const drawerWidth = 200;
 
@@ -23,6 +24,27 @@ const StyledNavLink = styled(NavLink)(({ theme }) => ({
 const AppNavigationDrawer = () => {
     const theme = useTheme();
     const { toggleColorMode } = useColorMode();
+
+    const exportData = () => {
+        LocalStorageHelper.exportAppDataToFile();
+    };
+
+    const importData = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        input.onchange = (event: any) => {
+            const file = event.target.files[0];
+
+            if (file) {
+                LocalStorageHelper.importAppDataFromFile(file);
+            }
+        };
+
+        input.click();
+    };
 
     return (
         <Drawer
@@ -89,7 +111,25 @@ const AppNavigationDrawer = () => {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <Box sx={{ p: 2, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Box
+                sx={{
+                    p: "0rem 1rem 0rem 1rem",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-around",
+                }}
+            >
+                <IconButton onClick={importData}>
+                    <Save />
+                </IconButton>
+
+                <IconButton onClick={exportData}>
+                    <FileDownload />
+                </IconButton>
+            </Box>
+
+            <Box sx={{ p: "1rem", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                 <Typography variant="caption" color="text.secondary">
                     © Paradox Oy
                 </Typography>

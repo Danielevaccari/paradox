@@ -12,7 +12,7 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle,
+    Tooltip,
 } from "@mui/material";
 import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
 import { Message } from "../Hedera/types";
@@ -153,6 +153,11 @@ let TopicView = ({ className }: Props) => {
         fetchTopics();
     }, [fetchTopics]);
 
+    const onRemoveTopicFromLocalStorage = React.useCallback((topicId: TopicId) => {
+        setTopics((prevState) => prevState.filter((topic) => topic.topicId !== topicId));
+        LocalStorageHelper.deleteTopicId(topicId.toString());
+    }, []);
+
     React.useEffect(() => {
         if (!selectedTopic) {
             return;
@@ -199,16 +204,18 @@ let TopicView = ({ className }: Props) => {
                                         </Grid>
 
                                         <Grid>
-                                            <Button
-                                                fullWidth
-                                                size="large"
-                                                color="info"
-                                                variant="contained"
-                                                disabled={loadingTopic || inputTopicId.length === 0}
-                                                onClick={handleFetchTopic}
-                                            >
-                                                {loadingTopic ? "Loading..." : "Fetch Topic"}
-                                            </Button>
+                                            <Tooltip title="Fetch existing topic info" arrow>
+                                                <Button
+                                                    fullWidth
+                                                    size="large"
+                                                    color="info"
+                                                    variant="contained"
+                                                    disabled={loadingTopic || inputTopicId.length <= 4}
+                                                    onClick={handleFetchTopic}
+                                                >
+                                                    {loadingTopic ? "Loading..." : "Fetch Topic"}
+                                                </Button>
+                                            </Tooltip>
                                         </Grid>
                                     </Grid>
                                 </Box>
@@ -223,15 +230,17 @@ let TopicView = ({ className }: Props) => {
                                         borderRadius: 2,
                                     })}
                                 >
-                                    <Button
-                                        fullWidth
-                                        size="large"
-                                        color="success"
-                                        variant="contained"
-                                        onClick={() => setOpenCreateTopicDialog(true)}
-                                    >
-                                        Create New Topic
-                                    </Button>
+                                    <Tooltip title="Create a new topic using Consensus Service" arrow>
+                                        <Button
+                                            fullWidth
+                                            size="large"
+                                            color="success"
+                                            variant="contained"
+                                            onClick={() => setOpenCreateTopicDialog(true)}
+                                        >
+                                            Create New Topic
+                                        </Button>
+                                    </Tooltip>
                                 </Box>
                             </Grid>
                         </Grid>
@@ -240,7 +249,13 @@ let TopicView = ({ className }: Props) => {
 
                 {/* Scrollable Content */}
                 <div className="content">
-                    <TopicList topics={topics} refreshTopicView={refresh} onSelectTopic={onSelectTopic} onDeleteTopic={onDeleteTopic} />
+                    <TopicList
+                        topics={topics}
+                        refreshTopicView={refresh}
+                        onSelectTopic={onSelectTopic}
+                        onDeleteTopic={onDeleteTopic}
+                        onRemoveTopicFromLocalStorage={onRemoveTopicFromLocalStorage}
+                    />
                 </div>
 
                 {/* Right Drawer for Topic Messages */}
@@ -262,7 +277,6 @@ let TopicView = ({ className }: Props) => {
 
             {/* Dialog for Create Topic */}
             <Dialog open={openCreateTopicDialog} onClose={() => setOpenCreateTopicDialog(false)}>
-                <DialogTitle>Create Topic</DialogTitle>
                 <DialogContent>
                     <TextField
                         fullWidth
@@ -275,39 +289,47 @@ let TopicView = ({ className }: Props) => {
 
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid>
-                            <Box display="flex" alignItems="center">
-                                <Typography variant="body2" sx={{ mr: 1 }}>
-                                    Not Admin
-                                </Typography>
-                                <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
-                                <Typography variant="body2" sx={{ ml: 1 }}>
-                                    Admin
-                                </Typography>
-                            </Box>
+                            <Tooltip title="Only admin can delete Topics" arrow>
+                                <Box display="flex" alignItems="center">
+                                    <Typography variant="body2" sx={{ mr: 1 }}>
+                                        Not Admin
+                                    </Typography>
+                                    <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
+                                    <Typography variant="body2" sx={{ ml: 1 }}>
+                                        Admin
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
                         </Grid>
                         <Grid>
-                            <Box display="flex" alignItems="center">
-                                <Typography variant="body2" sx={{ mr: 1 }}>
-                                    Public
-                                </Typography>
-                                <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
-                                <Typography variant="body2" sx={{ ml: 1 }}>
-                                    Private
-                                </Typography>
-                            </Box>
+                            <Tooltip title="Only specified accounts can send Topic messages into private Topics" arrow>
+                                <Box display="flex" alignItems="center">
+                                    <Typography variant="body2" sx={{ mr: 1 }}>
+                                        Public
+                                    </Typography>
+
+                                    <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
+
+                                    <Typography variant="body2" sx={{ ml: 1 }}>
+                                        Private
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
                         </Grid>
 
                         <Grid>
-                            <Button
-                                fullWidth
-                                size="large"
-                                color="success"
-                                variant="contained"
-                                disabled={creatingTopic || memo.length === 0}
-                                onClick={onCreateTopic}
-                            >
-                                Create Topic
-                            </Button>
+                            <Tooltip title="Create a new topic using Consensus Service" arrow>
+                                <Button
+                                    fullWidth
+                                    size="large"
+                                    color="success"
+                                    variant="contained"
+                                    disabled={creatingTopic || memo.length === 0}
+                                    onClick={onCreateTopic}
+                                >
+                                    Create Topic
+                                </Button>
+                            </Tooltip>
                         </Grid>
                     </Grid>
                 </DialogContent>

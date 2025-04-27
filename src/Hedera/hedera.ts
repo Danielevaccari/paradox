@@ -224,29 +224,24 @@ export class Hedera {
         return atob(base64String);
     }
 
-    static async derivePrivateKeyFromMnemonic(mnemonicWords: string) {
-        try {
-            // Create a Mnemonic object from the 24-word phrase
-            const mnemonic = await Mnemonic.fromString(mnemonicWords);
+    // static async derivePrivateKeyFromMnemonic(mnemonicWords: string) {
+    //     try {
+    //         // Create a Mnemonic object from the 24-word phrase
+    //         const mnemonic = await Mnemonic.fromString(mnemonicWords);
 
-            // Derive the private key using Hedera's default derivation path
-            const privateKey = await mnemonic.toStandardEd25519PrivateKey();
+    //         // Derive the private key using Hedera's default derivation path
+    //         const privateKey = await mnemonic.toStandardEd25519PrivateKey();
 
-            // Output the private key in DER format (compatible with Hedera API)
-            const privateKeyDer = privateKey.toStringDer();
-            const privateKeyRaw = privateKey.toStringRaw();
-            const publicKey = privateKey.publicKey.toStringDer();
+    //         // Output the private key in DER format (compatible with Hedera API)
+    //         const privateKeyDer = privateKey.toStringDer();
+    //         const privateKeyRaw = privateKey.toStringRaw();
+    //         const publicKey = privateKey.publicKey.toStringDer();
 
-            console.log("Private Key (DER):", privateKeyDer);
-            console.log("Private Key (Raw):", privateKeyRaw);
-            console.log("Public Key (DER):", publicKey);
-
-            return privateKey;
-        } catch (error) {
-            console.error("Error deriving private key:", error);
-            throw error;
-        }
-    }
+    //         return privateKey;
+    //     } catch (error) {
+    //         throw error;
+    //     }
+    // }
 
     private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string) {
         const url = `https://testnet.mirrornode.hedera.com/api/v1/topics/${topicId.toString()}/messages`;

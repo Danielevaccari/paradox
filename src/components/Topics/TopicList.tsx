@@ -13,6 +13,7 @@ import {
     Paper,
     CircularProgress,
     TextField,
+    Tooltip,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
@@ -25,9 +26,10 @@ type Props = {
     onSelectTopic: (topic: TopicInfo) => void;
     onDeleteTopic: (topicId: TopicId) => void;
     refreshTopicView: () => void;
+    onRemoveTopicFromLocalStorage: (topicId: TopicId) => void;
 };
 
-let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView }: Props) => {
+let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView, onRemoveTopicFromLocalStorage }: Props) => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [updatingTopicId, setUpdatingTopicId] = React.useState<string | null>(null);
 
@@ -127,19 +129,21 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 
                                     <TableCell align="right">
                                         {topic.submitKey?.toString() === Hedera.getPrivateKey().publicKey.toString() && (
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                disableRipple
-                                                sx={{ mr: 1 }}
-                                                variant="outlined"
-                                                onClick={(event) => {
-                                                    event.stopPropagation(); // prevent row click
-                                                    handleDeleteTopic(topic.topicId);
-                                                }}
-                                            >
-                                                Delete
-                                            </Button>
+                                            <Tooltip title="Delete Topic">
+                                                <Button
+                                                    size="small"
+                                                    color="error"
+                                                    disableRipple
+                                                    sx={{ mr: 1 }}
+                                                    variant="outlined"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleDeleteTopic(topic.topicId);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </Tooltip>
                                         )}
 
                                         {updatingTopicId === topic.topicId.toString() ? (
@@ -152,7 +156,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                 color="info"
                                                 variant="outlined"
                                                 onClick={(event) => {
-                                                    event.stopPropagation(); // prevent row click
+                                                    event.stopPropagation();
                                                     setUpdatingTopicId(topic.topicId.toString());
                                                     handleUpdateTopicExpirationDate(topic);
                                                 }}
@@ -160,6 +164,21 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                 Set Max Expiry
                                             </Button>
                                         )}
+
+                                        <Tooltip title="Remove from Local Storage">
+                                            <Button
+                                                size="small"
+                                                disableRipple
+                                                color="secondary"
+                                                variant="outlined"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onRemoveTopicFromLocalStorage(topic.topicId);
+                                                }}
+                                            >
+                                                ❌
+                                            </Button>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))}

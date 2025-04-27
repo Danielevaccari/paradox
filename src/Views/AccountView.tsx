@@ -46,8 +46,6 @@ let AccountView = ({ className }: Props) => {
         }
     }, [accounts, selectedAccountId]);
 
-    console.log("Selected Account: ", selectedAccount);
-
     React.useEffect(() => {
         const currentAccountId = Hedera.getAccountId();
 

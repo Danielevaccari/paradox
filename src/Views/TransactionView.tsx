@@ -13,7 +13,6 @@ type Props = {
 
 let TransactionView = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
-    const [fetchTransactions, setFetchTransactions] = React.useState(false); // state to trigger fetching transactions
     const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
     const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string>(Hedera.getAccountId());
 
@@ -36,10 +35,6 @@ let TransactionView = ({ className }: Props) => {
         }
     };
 
-    const handleGetTransactions = () => {
-        setFetchTransactions(true); // Trigger fetching transactions
-    };
-
     return (
         <div className={className}>
             <Box sx={{ display: "flex" }}>
@@ -55,10 +50,6 @@ let TransactionView = ({ className }: Props) => {
                                 onChange={(event) => setAccountIdForTransactionQuery(event.target.value)}
                             />
                         </Grid>
-
-                        <Button variant="contained" onClick={handleGetTransactions}>
-                            Get Transactions
-                        </Button>
 
                         <Grid>
                             <TextField
@@ -111,11 +102,9 @@ let TransactionView = ({ className }: Props) => {
             </Box>
 
             {/* Scrollable Transaction List */}
-            {fetchTransactions && (
-                <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
-                    <TransactionList accountId={accountIdForTransactionQuery} />
-                </Box>
-            )}
+            <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
+                <TransactionList accountId={accountIdForTransactionQuery} />
+            </Box>
         </div>
     );
 };
