@@ -39,7 +39,9 @@ const AppNavigationDrawer = () => {
             const file = event.target.files[0];
 
             if (file) {
-                LocalStorageHelper.importAppDataFromFile(file);
+                LocalStorageHelper.importAppDataFromFile(file).then(() => {
+                    window.location.reload();
+                });
             }
         };
 

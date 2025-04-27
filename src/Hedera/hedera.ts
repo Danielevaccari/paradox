@@ -12,7 +12,6 @@ import {
     AccountInfoQuery,
     Timestamp,
     PrivateKey,
-    Mnemonic,
     TopicDeleteTransaction,
     TopicUpdateTransaction,
 } from "@hashgraph/sdk";
