@@ -4,7 +4,6 @@ import {
     ListItem,
     ListItemText,
     Box,
-    TextField,
     Button,
     Select,
     MenuItem,
@@ -34,31 +33,21 @@ type Props = {
     onCreateTopicMessage: (message: string) => void;
 };
 
-let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessage }: Props) => {
+let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Props) => {
     const [byteSize, setByteSize] = useState(0); // State for byte size
-    const [messageInput, setMessageInput] = React.useState("");
     const [openJsonEditor, setOpenJsonEditor] = React.useState(false);
     const [textEditorValue, setTextEditorValue] = React.useState<string>("{}");
-    const [selectedLanguage, setSelectedLanguage] = React.useState<string>("text");
+    const [selectedLanguage, setSelectedLanguage] = React.useState<string>("json");
     const [selectedDataType, setSelectedDataType] = React.useState<DataType>(DataType.PLAINTEXT);
 
     const theme = useTheme();
-
-    const handleSend = () => {
-        if (messageInput.trim() === "") {
-            return;
-        }
-
-        onCreateTopicMessage(messageInput);
-        setMessageInput("");
-    };
 
     const handleOpenJsonEditor = () => {
         setTextEditorValue("{}");
         setOpenJsonEditor(true);
     };
 
-    const handleAcceptJson = () => {
+    const onAcceptTextEditor = () => {
         try {
             const parsed = JSON.parse(textEditorValue);
             const jsonString = JSON.stringify(parsed);
@@ -79,47 +68,31 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
     return (
         <div className={className}>
             {/* Message Input and Data Type */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, width: "100%" }}>
-                <Box sx={{ display: "flex", gap: 2, flexGrow: 1 }}>
-                    <TextField
-                        style={{ flexGrow: 1 }}
-                        value={messageInput}
-                        placeholder={`Message to send to topic ${topicId.toString()}`}
-                        onChange={(event) => setMessageInput(event.target.value)}
-                    />
-
-                    <Button
+            <Box sx={{ display: "flex", gap: "20px", alignItems: "center", width: "100%" }}>
+                <Box>
+                    <Select
                         size="small"
-                        color="primary"
-                        variant="contained"
-                        style={{ flexGrow: 0.5 }}
-                        disabled={messageInput === ""}
-                        onClick={handleSend}
+                        variant="outlined"
+                        value={selectedDataType}
+                        onChange={(event) => setSelectedDataType(event.target.value as DataType)}
                     >
-                        Send
-                    </Button>
+                        {Object.entries(DataType).map(
+                            ([key, value]) =>
+                                typeof value === "number" && (
+                                    <MenuItem key={value} value={value}>
+                                        {key}
+                                    </MenuItem>
+                                ),
+                        )}
+                    </Select>
+                </Box>
 
-                    <Button style={{ flexGrow: 0.5 }} variant="contained" color="secondary" size="small" onClick={handleOpenJsonEditor}>
-                        Custom
+                <Box>
+                    <Button variant="contained" color="success" size="medium" onClick={handleOpenJsonEditor}>
+                        Send new message
                     </Button>
                 </Box>
             </Box>
-
-            <Select
-                sx={{ p: 1 }}
-                variant="standard"
-                value={selectedDataType}
-                onChange={(event) => setSelectedDataType(event.target.value as DataType)}
-            >
-                {Object.entries(DataType).map(
-                    ([key, value]) =>
-                        typeof value === "number" && (
-                            <MenuItem key={value} value={value}>
-                                {key}
-                            </MenuItem>
-                        ),
-                )}
-            </Select>
 
             {/* Scrollable Message List */}
             <Box className="scroll-container">
@@ -135,8 +108,8 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                             } else if (selectedDataType === DataType.JSON) {
                                 try {
                                     message = JSON.stringify(JSON.parse(decodedTopicMessage), null, 2);
-                                } catch (error) {
-                                    Notifier.showError(error);
+                                } catch {
+                                    message = decodedTopicMessage; // Fallback to plaintext if JSON parsing fails
                                 }
                             }
 
@@ -179,7 +152,7 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                             <MenuItem value="html">HTML</MenuItem>
                             <MenuItem value="xml">XML</MenuItem>
                             <MenuItem value="csv">CSV</MenuItem>
-                            <MenuItem value="text">Text</MenuItem>
+                            <MenuItem value="text">TEXT</MenuItem>
                         </Select>
                     </FormControl>
                 </DialogTitle>
@@ -197,7 +170,7 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                         {byteSize} bytes
                     </Typography>
                     <Button onClick={() => setOpenJsonEditor(false)}>Close</Button>
-                    <Button onClick={handleAcceptJson} variant="contained" color="primary">
+                    <Button onClick={onAcceptTextEditor} variant="contained" color="primary">
                         Send
                     </Button>
                 </DialogActions>
