@@ -74,6 +74,16 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
                         size="small"
                         variant="outlined"
                         value={selectedDataType}
+                        MenuProps={{
+                            anchorOrigin: {
+                                vertical: "bottom",
+                                horizontal: "left",
+                            },
+                            transformOrigin: {
+                                vertical: "top",
+                                horizontal: "right",
+                            },
+                        }}
                         onChange={(event) => setSelectedDataType(event.target.value as DataType)}
                     >
                         {Object.entries(DataType).map(
