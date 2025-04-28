@@ -21,6 +21,7 @@ import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 import styled from "styled-components";
 import { TopicList } from "../components/Topics/TopicList";
 import { Notifier } from "../Notifications/notifications";
+import { HederaMirrorNode } from "../Hedera/hederaMirrorNode";
 
 type Props = {
     className?: string;
@@ -30,8 +31,8 @@ let TopicView = ({ className }: Props) => {
     const [memo, setMemo] = React.useState<string>("");
     const [isAdmin, setIsAdmin] = React.useState(false);
     const [isPrivate, setIsPrivate] = React.useState(false);
+    const [inputTopicId, setInputTopicId] = React.useState("");
     const [loadingTopic, setLoadingTopic] = React.useState(false);
-    const [inputTopicId, setInputTopicId] = React.useState("0.0.");
     const [creatingTopic, setCreatingTopic] = React.useState(false);
     const [topics, setTopics] = React.useState<Array<TopicInfo>>([]);
     const [openCreateTopicDialog, setOpenCreateTopicDialog] = React.useState(false);
@@ -118,7 +119,7 @@ let TopicView = ({ className }: Props) => {
     };
 
     const getTopicMessagesByTopicId = (topicId: TopicId | string) => {
-        Hedera.mirrorNodeGetTopicMessagesByTopicId(topicId).then(setSelectedTopicTopicMessages);
+        HederaMirrorNode.mirrorNodeGetTopicMessagesByTopicId(topicId).then(setSelectedTopicTopicMessages);
     };
 
     const onCreateTopicMessage = React.useCallback(
@@ -182,14 +183,14 @@ let TopicView = ({ className }: Props) => {
             <Box>
                 <div className="header">
                     {/* Topic Controls */}
-                    <Paper elevation={3} sx={{ p: 2 }}>
+                    <Paper elevation={3} sx={{ p: "1rem" }}>
                         <Grid container spacing={3} alignItems="center">
                             {/* ID Input and Fetch Button Group */}
                             <Grid>
                                 <Box
                                     sx={(theme) => ({
                                         backgroundColor: theme.palette.background.default,
-                                        p: 2,
+                                        p: "1rem",
                                     })}
                                 >
                                     <Grid container spacing={2} alignItems="center">
@@ -207,8 +208,8 @@ let TopicView = ({ className }: Props) => {
                                             <Tooltip title="Fetch existing topic info" arrow>
                                                 <Button
                                                     fullWidth
-                                                    size="large"
                                                     color="info"
+                                                    size="medium"
                                                     variant="contained"
                                                     disabled={loadingTopic || inputTopicId.length <= 4}
                                                     onClick={handleFetchTopic}
@@ -233,7 +234,7 @@ let TopicView = ({ className }: Props) => {
                                     <Tooltip title="Create a new topic using Consensus Service" arrow>
                                         <Button
                                             fullWidth
-                                            size="large"
+                                            size="medium"
                                             color="success"
                                             variant="contained"
                                             onClick={() => setOpenCreateTopicDialog(true)}

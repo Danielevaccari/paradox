@@ -14,6 +14,7 @@ import {
     InputLabel,
     FormControl,
     useTheme,
+    IconButton,
 } from "@mui/material";
 import { Message } from "../../Hedera/types";
 import React, { useState } from "react";
@@ -25,6 +26,8 @@ import { formatConsensusTime } from "../../Utility/date";
 import { Notifier } from "../../Notifications/notifications";
 import Editor from "@monaco-editor/react";
 import { calculateByteSize } from "../../Utility/math";
+import { Add, Remove } from "@mui/icons-material";
+import { LocalStorageHelper } from "../../LocalStorage/localStorageHelper";
 
 type Props = {
     className?: string;
@@ -34,10 +37,11 @@ type Props = {
 };
 
 let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Props) => {
-    const [byteSize, setByteSize] = useState(0); // State for byte size
+    const [byteSize, setByteSize] = useState(0);
     const [openJsonEditor, setOpenJsonEditor] = React.useState(false);
     const [textEditorValue, setTextEditorValue] = React.useState<string>("{}");
     const [selectedLanguage, setSelectedLanguage] = React.useState<string>("json");
+    const [fontSize, setFontSize] = React.useState(LocalStorageHelper.getTopicMessageFontSize());
     const [selectedDataType, setSelectedDataType] = React.useState<DataType>(DataType.PLAINTEXT);
 
     const theme = useTheme();
@@ -65,10 +69,45 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
         setByteSize(byteSize); // Track byte size whenever content changes in the editor
     };
 
+    const changeFontSize = (num: number) => {
+        setFontSize((prevSize) => {
+            // Parse the previous font size string (e.g., "1.5rem") to a float number
+            const currentSize = parseFloat(prevSize);
+
+            // Calculate the new font size by adding the adjustment
+            let newFontSize = currentSize + num;
+
+            // Ensure the new font size doesn't exceed 3rem or go below 0.5rem
+            if (newFontSize > 3) {
+                newFontSize = 3;
+            }
+            if (newFontSize < 0.5) {
+                newFontSize = 0.5;
+            }
+
+            // Convert the number back to a string with 'rem' unit
+            const newFontSizeStr = newFontSize.toFixed(1) + "rem";
+
+            // Store the new font size in local storage
+            LocalStorageHelper.setTopicMessageFontSize(newFontSizeStr);
+
+            return newFontSizeStr;
+        });
+    };
+
     return (
         <div className={className}>
             {/* Message Input and Data Type */}
-            <Box sx={{ display: "flex", gap: "20px", alignItems: "center", width: "100%" }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: "20px",
+                    alignItems: "center",
+                    width: "100%",
+                    backgroundColor: theme.palette.background.default,
+                    padding: "1rem",
+                }}
+            >
                 <Box>
                     <Select
                         size="small"
@@ -99,14 +138,24 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
 
                 <Box>
                     <Button variant="contained" color="success" size="medium" onClick={handleOpenJsonEditor}>
-                        Send new message
+                        New message
                     </Button>
+                </Box>
+
+                {/* Font Size Buttons */}
+                <Box sx={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexGrow: 1 }}>
+                    <IconButton onClick={() => changeFontSize(0.1)}>
+                        <Add />
+                    </IconButton>
+                    <IconButton onClick={() => changeFontSize(-0.1)}>
+                        <Remove />
+                    </IconButton>
                 </Box>
             </Box>
 
             {/* Scrollable Message List */}
             <Box className="scroll-container">
-                <List sx={{ mb: 2 }}>
+                <List>
                     {Hedera.assembleChunkedMessages(topicMessages)
                         .reverse()
                         .map((msg, index) => {
@@ -128,18 +177,20 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
                             return (
                                 <ListItem key={index} alignItems="flex-start">
                                     <Box sx={{ width: "100%", wordBreak: "break-word" }}>
-                                        <ListItemText primary={<Typography sx={{ whiteSpace: "pre-wrap" }}>{message}</Typography>} />
+                                        <ListItemText
+                                            primary={<Typography sx={{ whiteSpace: "pre-wrap", fontSize: fontSize }}>{message}</Typography>}
+                                        />
 
                                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                            <Typography fontSize={12} color="text.secondary">
+                                            <Typography fontSize="0.75rem" color="text.secondary">
                                                 {msg.sequence_number}
                                             </Typography>
 
-                                            <Typography fontSize={12} color="text.secondary">
+                                            <Typography fontSize="0.75rem" color="text.secondary">
                                                 {timestamp}
                                             </Typography>
 
-                                            <Typography fontSize={12} color="text.secondary">
+                                            <Typography fontSize="0.75rem" color="text.secondary">
                                                 {msg.payer_account_id}
                                             </Typography>
                                         </Box>
@@ -180,6 +231,7 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
                         {byteSize} bytes
                     </Typography>
                     <Button onClick={() => setOpenJsonEditor(false)}>Close</Button>
+
                     <Button onClick={onAcceptTextEditor} variant="contained" color="primary">
                         Send
                     </Button>

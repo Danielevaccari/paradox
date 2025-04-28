@@ -1,11 +1,11 @@
 import * as React from "react";
 import { Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
 import { Transaction } from "../../Hedera/types";
-import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
 import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
 import { TransferRow } from "./TransferRow";
+import { HederaMirrorNode } from "../../Hedera/hederaMirrorNode";
 
 type Props = {
     className?: string;
@@ -18,7 +18,7 @@ let TransactionList = ({ className, accountId }: Props) => {
     React.useEffect(() => {
         const fetchTransactions = async () => {
             try {
-                const txns = await Hedera.getAccountTransactions(accountId);
+                const txns = await HederaMirrorNode.getAccountTransactions(accountId.toString());
                 setTransactions(txns || []);
             } catch (error) {
                 Notifier.showError(error);

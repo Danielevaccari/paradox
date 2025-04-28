@@ -1,6 +1,6 @@
 import { styled, useTheme } from "@mui/material/styles";
 import { NavLink } from "react-router-dom";
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, IconButton } from "@mui/material";
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, IconButton, Tooltip } from "@mui/material";
 import SunnyIcon from "@mui/icons-material/Sunny";
 import { Bedtime, FileDownload, Save } from "@mui/icons-material";
 import { Hedera } from "../Hedera/hedera";
@@ -122,13 +122,17 @@ const AppNavigationDrawer = () => {
                     justifyContent: "space-around",
                 }}
             >
-                <IconButton onClick={importData}>
-                    <Save />
-                </IconButton>
+                <Tooltip title="Import Data" arrow>
+                    <IconButton onClick={importData}>
+                        <Save />
+                    </IconButton>
+                </Tooltip>
 
-                <IconButton onClick={exportData}>
-                    <FileDownload />
-                </IconButton>
+                <Tooltip title="Export Data" arrow>
+                    <IconButton onClick={exportData}>
+                        <FileDownload />
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <Box sx={{ p: "1rem", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

@@ -3,7 +3,7 @@ import * as React from "react";
 import { hbarLogo } from "../../Hedera/constants";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import { Hedera } from "../../Hedera/hedera";
-import { formatDateToDDMMYYYYhhmm } from "../../Utility/date";
+import { formatDateToDDMMYYYYhhmmss } from "../../Utility/date";
 import { Transaction } from "../../Hedera/types";
 import { SuccessOrFail } from "../../Hedera/enumerations";
 import { AccountId } from "@hashgraph/sdk";
@@ -41,7 +41,7 @@ const TransferRow = ({ transaction, accountId }: Props) => {
                 <TableCell>{transaction.name}</TableCell>
                 <TableCell>{`${Hedera.tinybarToHbar(transaction.charged_tx_fee)} ${hbarLogo}`}</TableCell>
                 <TableCell>{transaction.node}</TableCell>
-                <TableCell>{formatDateToDDMMYYYYhhmm(new Date(Number(transaction.consensus_timestamp) * 1000))}</TableCell>
+                <TableCell>{formatDateToDDMMYYYYhhmmss(new Date(Number(transaction.consensus_timestamp) * 1000))}</TableCell>
             </TableRow>
 
             <TableRow>

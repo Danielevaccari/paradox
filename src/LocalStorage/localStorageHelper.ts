@@ -28,10 +28,31 @@ export class LocalStorageHelper {
         localStorage.setItem("themeMode", mode);
     }
 
+    static getTopicMessageFontSize(): string {
+        const fontSize = localStorage.getItem("topicMessageFontSize");
+        return fontSize ? fontSize : "0.9rem"; // Default font size
+    }
+
+    static setTopicMessageFontSize(fontSize: string): void {
+        localStorage.setItem("topicMessageFontSize", fontSize);
+    }
+
+    static getTopicMessageEditorType(): string {
+        const editorType = localStorage.getItem("topicMessageEditorType");
+        return editorType ? editorType : "json"; // Default editor type
+    }
+
+    static setTopicMessageEditorType(editorType: string): void {
+        localStorage.setItem("topicMessageEditorType", editorType);
+    }
+
+    // Export app data including fontSize and editorType
     static exportAppDataToFile(): void {
         const data = {
             savedTopicIds: LocalStorageHelper.getStoredTopicIds(),
             themeMode: LocalStorageHelper.getThemeMode(),
+            topicMessageFontSize: LocalStorageHelper.getTopicMessageFontSize(),
+            topicMessageEditorType: LocalStorageHelper.getTopicMessageEditorType(),
         };
 
         // Get current date and time
@@ -56,6 +77,7 @@ export class LocalStorageHelper {
         URL.revokeObjectURL(url);
     }
 
+    // Import app data
     static importAppDataFromFile(file: File): Promise<void> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -70,6 +92,14 @@ export class LocalStorageHelper {
 
                     if (data.themeMode) {
                         localStorage.setItem("themeMode", data.themeMode);
+                    }
+
+                    if (data.topicMessageFontSize) {
+                        localStorage.setItem("topicMessageFontSize", data.topicMessageFontSize);
+                    }
+
+                    if (data.topicMessageEditorType) {
+                        localStorage.setItem("topicMessageEditorType", data.topicMessageEditorType);
                     }
 
                     Notifier.showSuccess("Data imported successfully");

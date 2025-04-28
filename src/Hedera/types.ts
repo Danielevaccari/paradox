@@ -53,4 +53,41 @@ type Transaction = {
     valid_start_timestamp: string;
 };
 
-export type { MessageChunkInfo, Links, Message, DataStructure, Transaction };
+type Topic = {
+    admin_key: {
+        _type: "ProtobufEncoded";
+        key: string;
+    };
+    auto_renew_account: string;
+    auto_renew_period: number;
+    created_timestamp: string;
+    custom_fees: {
+        created_timestamp: string;
+        fixed_fees: {
+            amount: number;
+            collector_account_id: string;
+            denominating_token_id: string;
+        }[];
+    };
+    deleted: boolean;
+    fee_exempt_key_list: Array<{
+        _type: "ProtobufEncoded";
+        key: string;
+    }>;
+    fee_schedule_key: {
+        _type: "ProtobufEncoded";
+        key: string;
+    };
+    memo: string;
+    submit_key: {
+        _type: "ProtobufEncoded";
+        key: string;
+    };
+    timestamp: {
+        from: string;
+        to: string;
+    };
+    topic_id: string;
+};
+
+export type { MessageChunkInfo, Links, Message, DataStructure, Transaction, Topic };

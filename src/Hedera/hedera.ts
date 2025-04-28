@@ -15,8 +15,7 @@ import {
     TopicDeleteTransaction,
     TopicUpdateTransaction,
 } from "@hashgraph/sdk";
-import { DataStructure, Message } from "./types";
-import { Notifier } from "../Notifications/notifications";
+import { Message } from "./types";
 
 export class Hedera {
     private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
@@ -192,25 +191,6 @@ export class Hedera {
         return await new AccountInfoQuery().setAccountId(accountId).execute(this.client);
     }
 
-    static async getAccountTransactions(accountId: AccountId | string, limit = 100, order: "asc" | "desc" = "desc") {
-        const id = typeof accountId === "string" ? accountId : accountId.toString();
-        const url = `https://testnet.mirrornode.hedera.com/api/v1/transactions?account.id=${id}&limit=${limit}&order=${order}`;
-
-        try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                Notifier.showError(response);
-            }
-
-            const data = await response.json();
-
-            return data.transactions;
-        } catch (error) {
-            Notifier.showError(error);
-        }
-    }
-
     static createConsensusTimeStamp(date: string | number | Date) {
         return Timestamp.fromDate(date);
     }
@@ -242,18 +222,6 @@ export class Hedera {
     //     }
     // }
 
-    private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string) {
-        const url = `https://testnet.mirrornode.hedera.com/api/v1/topics/${topicId.toString()}/messages`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Fetch failed: ${response.statusText}`);
-        }
-
-        const data: DataStructure = await response.json();
-        return data.messages;
-    }
-
     static assembleChunkedMessages(messages: Array<Message>): Message[] {
         let temp = "";
         const completed: Message[] = [];
@@ -271,11 +239,6 @@ export class Hedera {
         }
 
         return completed;
-    }
-
-    static async mirrorNodeGetTopicMessagesByTopicId(topicId: TopicId | string) {
-        const raw = await this.fetchRawMessagesFromMirrorNode(topicId);
-        return this.assembleChunkedMessages(raw);
     }
 
     static tinybarToHbar(tinybar: number) {
