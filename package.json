@@ -6,6 +6,7 @@
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
         "@hashgraph/sdk": "^2.63.0",
+        "@monaco-editor/react": "^4.7.0",
         "@mui/icons-material": "^7.0.2",
         "@mui/material": "^7.0.2",
         "notistack": "^3.0.2",

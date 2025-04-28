@@ -1,12 +1,31 @@
-import { Typography, List, ListItem, ListItemText, Box, TextField, Button, Select, MenuItem } from "@mui/material";
+import {
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    Box,
+    TextField,
+    Button,
+    Select,
+    MenuItem,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    InputLabel,
+    FormControl,
+    useTheme,
+} from "@mui/material";
 import { Message } from "../../Hedera/types";
-import React from "react";
+import React, { useState } from "react";
 import { TopicId } from "@hashgraph/sdk";
 import { Hedera } from "../../Hedera/hedera";
 import { DataType } from "../../Enumerations/enumerations";
 import styled from "styled-components";
 import { formatConsensusTime } from "../../Utility/date";
 import { Notifier } from "../../Notifications/notifications";
+import Editor from "@monaco-editor/react";
+import { calculateByteSize } from "../../Utility/math";
 
 type Props = {
     className?: string;
@@ -16,8 +35,14 @@ type Props = {
 };
 
 let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessage }: Props) => {
+    const [byteSize, setByteSize] = useState(0); // State for byte size
     const [messageInput, setMessageInput] = React.useState("");
+    const [openJsonEditor, setOpenJsonEditor] = React.useState(false);
+    const [textEditorValue, setTextEditorValue] = React.useState<string>("{}");
+    const [selectedLanguage, setSelectedLanguage] = React.useState<string>("text");
     const [selectedDataType, setSelectedDataType] = React.useState<DataType>(DataType.PLAINTEXT);
+
+    const theme = useTheme();
 
     const handleSend = () => {
         if (messageInput.trim() === "") {
@@ -26,6 +51,29 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
 
         onCreateTopicMessage(messageInput);
         setMessageInput("");
+    };
+
+    const handleOpenJsonEditor = () => {
+        setTextEditorValue("{}");
+        setOpenJsonEditor(true);
+    };
+
+    const handleAcceptJson = () => {
+        try {
+            const parsed = JSON.parse(textEditorValue);
+            const jsonString = JSON.stringify(parsed);
+            onCreateTopicMessage(jsonString);
+            setOpenJsonEditor(false);
+        } catch {
+            Notifier.showError("Invalid JSON");
+        }
+    };
+
+    const handleEditorChange = (value: string | undefined) => {
+        setTextEditorValue(value ?? "{}");
+
+        const byteSize = calculateByteSize(value ?? "{}");
+        setByteSize(byteSize); // Track byte size whenever content changes in the editor
     };
 
     return (
@@ -51,7 +99,7 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                         Send
                     </Button>
 
-                    <Button style={{ flexGrow: 0.5 }} variant="contained" color="secondary" size="small" onClick={handleSend}>
+                    <Button style={{ flexGrow: 0.5 }} variant="contained" color="secondary" size="small" onClick={handleOpenJsonEditor}>
                         Custom
                     </Button>
                 </Box>
@@ -119,6 +167,41 @@ let TopicMessagesList = ({ className, topicId, topicMessages, onCreateTopicMessa
                         })}
                 </List>
             </Box>
+
+            {/* JSON Editor Dialog */}
+            <Dialog open={openJsonEditor} onClose={() => setOpenJsonEditor(false)} fullWidth maxWidth="lg">
+                <DialogTitle>
+                    <FormControl fullWidth>
+                        <InputLabel>Language</InputLabel>
+                        <Select value={selectedLanguage} label="Language" onChange={(event) => setSelectedLanguage(event.target.value)}>
+                            <MenuItem value="json">JSON</MenuItem>
+                            <MenuItem value="yaml">YAML</MenuItem>
+                            <MenuItem value="html">HTML</MenuItem>
+                            <MenuItem value="xml">XML</MenuItem>
+                            <MenuItem value="csv">CSV</MenuItem>
+                            <MenuItem value="text">Text</MenuItem>
+                        </Select>
+                    </FormControl>
+                </DialogTitle>
+                <DialogContent dividers>
+                    <Editor
+                        height="60vh"
+                        value={textEditorValue}
+                        language={selectedLanguage}
+                        theme={theme.palette.mode === "dark" ? "vs-dark" : "vs-light"}
+                        onChange={handleEditorChange} // Handle editor change and calculate byte size
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Typography variant="body2" sx={{ padding: 2 }}>
+                        {byteSize} bytes
+                    </Typography>
+                    <Button onClick={() => setOpenJsonEditor(false)}>Close</Button>
+                    <Button onClick={handleAcceptJson} variant="contained" color="primary">
+                        Send
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };
