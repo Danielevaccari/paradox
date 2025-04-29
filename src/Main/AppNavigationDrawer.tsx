@@ -7,7 +7,7 @@ import { Hedera } from "../Hedera/hedera";
 import { useColorMode } from "../main";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
-const drawerWidth = 200;
+const drawerWidth = 180;
 
 const StyledNavLink = styled(NavLink)(({ theme }) => ({
     textDecoration: "none",
@@ -147,5 +147,3 @@ const AppNavigationDrawer = () => {
 };
 
 export { AppNavigationDrawer };
-
-export { drawerWidth };

@@ -1,6 +1,6 @@
 import { TopicId } from "@hashgraph/sdk";
 import { Notifier } from "../Notifications/notifications";
-import { DataStructure, Message, Topic } from "./types";
+import { DataStructure, Message, MirrorNodeTopic, Topic } from "./types";
 
 export class HederaMirrorNode {
     // Static variable to hold the base URL for the mirror node
@@ -56,7 +56,7 @@ export class HederaMirrorNode {
     }
 
     // Fetch topic info by Topic ID
-    static async getTopicInfoById(topicId: TopicId | string): Promise<Topic> {
+    static async getTopicInfoById(topicId: TopicId | string) {
         const url = `${this.BASE_URL}/topics/${topicId.toString()}`;
 
         const response = await fetch(url);
@@ -65,8 +65,10 @@ export class HederaMirrorNode {
             Notifier.showError(response);
         }
 
-        const topic: Topic = await response.json();
-        return topic;
+        const mirrorNodeTopic: MirrorNodeTopic = await response.json();
+
+        const transformedTopic = this.transformMirrorNodeTopicToGenericTopic(mirrorNodeTopic);
+        return transformedTopic;
     }
 
     // Fetch account transactions from the Mirror Node API
@@ -85,5 +87,20 @@ export class HederaMirrorNode {
         } catch (error) {
             Notifier.showError(error);
         }
+    }
+
+    static transformMirrorNodeTopicToGenericTopic(mirrorNodeTopic: MirrorNodeTopic): Topic {
+        return {
+            memo: mirrorNodeTopic.memo,
+            deleted: mirrorNodeTopic.deleted,
+            topicId: mirrorNodeTopic.topic_id,
+            adminKey: mirrorNodeTopic.admin_key,
+            submitKey: mirrorNodeTopic.submit_key,
+            expirationTime: mirrorNodeTopic.timestamp.to, // Assuming 'to' as the expiration
+            feeScheduleKey: mirrorNodeTopic.fee_schedule_key,
+            autoRenewPeriod: mirrorNodeTopic.auto_renew_period,
+            autoRenewAccount: mirrorNodeTopic.auto_renew_account,
+            feeExemptKeyList: mirrorNodeTopic.fee_exempt_key_list,
+        };
     }
 }

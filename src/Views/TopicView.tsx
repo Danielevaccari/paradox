@@ -1,4 +1,4 @@
-import { TopicId, TopicInfo } from "@hashgraph/sdk";
+import { TopicId } from "@hashgraph/sdk";
 import * as React from "react";
 import {
     Box,
@@ -15,7 +15,7 @@ import {
     Tooltip,
 } from "@mui/material";
 import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
-import { Message } from "../Hedera/types";
+import { Message, Topic } from "../Hedera/types";
 import { Hedera } from "../Hedera/hedera";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 import styled from "styled-components";
@@ -29,14 +29,14 @@ type Props = {
 
 let TopicView = ({ className }: Props) => {
     const [memo, setMemo] = React.useState<string>("");
-    const [isAdmin, setIsAdmin] = React.useState(false);
-    const [isPrivate, setIsPrivate] = React.useState(false);
+    const [isAdmin, setIsAdmin] = React.useState(true);
+    const [isPrivate, setIsPrivate] = React.useState(true);
     const [inputTopicId, setInputTopicId] = React.useState("");
     const [loadingTopic, setLoadingTopic] = React.useState(false);
     const [creatingTopic, setCreatingTopic] = React.useState(false);
-    const [topics, setTopics] = React.useState<Array<TopicInfo>>([]);
+    const [topics, setTopics] = React.useState<Array<Topic>>([]);
     const [openCreateTopicDialog, setOpenCreateTopicDialog] = React.useState(false);
-    const [selectedTopic, setSelectedTopic] = React.useState<TopicInfo | null>(null);
+    const [selectedTopic, setSelectedTopic] = React.useState<Topic | null>(null);
     const [selectedTopicTopicMessages, setSelectedTopicTopicMessages] = React.useState<Array<Message>>([]);
 
     const onTopicMemoChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -47,15 +47,21 @@ let TopicView = ({ className }: Props) => {
         setInputTopicId(event.target.value);
     }, []);
 
-    const onSelectTopic = React.useCallback((topic: TopicInfo) => {
+    const onSelectTopic = React.useCallback((topic: Topic) => {
         setSelectedTopic(topic);
     }, []);
 
-    const onDeleteTopic = React.useCallback((topicId: TopicId) => {
-        Hedera.deleteTopicById(topicId).then(() => {
-            setTopics((prevState) => prevState.filter((topic) => topic.topicId !== topicId));
-            LocalStorageHelper.deleteTopicId(topicId.toString());
-        });
+    const onDeleteTopic = React.useCallback((topicId: string) => {
+        Hedera.deleteTopicById(topicId)
+            .then(() => {
+                setTopics((prevTopics) => {
+                    const updated = prevTopics.map((topic) => (topic.topicId === topicId ? { ...topic, deleted: true } : topic));
+                    return updated;
+                });
+
+                Notifier.showSuccess("Topic deleted successfully. Following topic message submissions will fail");
+            })
+            .catch(Notifier.showError);
     }, []);
 
     const handleFetchTopic = React.useCallback(() => {
@@ -74,12 +80,12 @@ let TopicView = ({ className }: Props) => {
         const topicId = TopicId.fromString(trimmedTopicId);
         setLoadingTopic(true);
 
-        Hedera.getTopicInfo(topicId)
-            .then((topic: TopicInfo) => {
+        HederaMirrorNode.getTopicInfoById(topicId)
+            .then((topic: Topic) => {
                 setTopics((prev) => [topic, ...prev]);
                 onSelectTopic(topic);
                 Notifier.showSuccess("Topic found");
-                LocalStorageHelper.storeTopicId(topic.topicId.toString());
+                LocalStorageHelper.storeTopicId(topic.topicId);
             })
             .catch(Notifier.showError)
             .finally(() => setLoadingTopic(false));
@@ -106,16 +112,19 @@ let TopicView = ({ className }: Props) => {
             return;
         }
 
-        Hedera.getTopicInfo(topicId)
-            .then((topic: TopicInfo) => {
-                setTopics((prev) => [topic, ...prev]);
-                setMemo("");
-                Notifier.showSuccess("Topic created successfully");
-            })
-            .finally(() => {
-                setCreatingTopic(false);
-                setOpenCreateTopicDialog(false);
-            });
+        new Promise((resolve) => setTimeout(resolve, 3000)).then(() => {
+            // Add delay to allow the topic to be created on the network
+            HederaMirrorNode.getTopicInfoById(topicId)
+                .then((topic: Topic) => {
+                    setTopics((prev) => [topic, ...prev]);
+                    setMemo("");
+                    Notifier.showSuccess("Topic created successfully");
+                })
+                .finally(() => {
+                    setCreatingTopic(false);
+                    setOpenCreateTopicDialog(false);
+                });
+        });
     };
 
     const getTopicMessagesByTopicId = (topicId: TopicId | string) => {
@@ -128,33 +137,35 @@ let TopicView = ({ className }: Props) => {
                 return;
             }
 
-            Hedera.createTopicMessage(selectedTopic.topicId, topicMessage).then(() => {
-                new Promise((resolve) => setTimeout(resolve, 5000)).then(() => {
-                    getTopicMessagesByTopicId(selectedTopic.topicId);
-                });
-            });
+            Hedera.createTopicMessage(selectedTopic.topicId, topicMessage)
+                .then(() => {
+                    new Promise((resolve) => setTimeout(resolve, 6000)).then(() => {
+                        getTopicMessagesByTopicId(selectedTopic.topicId);
+                    });
+                })
+                .catch(Notifier.showError);
         },
         [selectedTopic],
     );
 
     const fetchTopics = React.useCallback(async () => {
-        const topicInfos = await Promise.all(
+        const topics = await Promise.all(
             LocalStorageHelper.getStoredTopicIds().map(async (savedTopicId) => {
                 const topicId = TopicId.fromString(savedTopicId);
-                const topic = await Hedera.getTopicInfo(topicId);
+                const topic = await HederaMirrorNode.getTopicInfoById(topicId);
 
                 return topic;
             }),
         );
 
-        setTopics(topicInfos);
+        setTopics(topics);
     }, []);
 
     const refresh = React.useCallback(() => {
         fetchTopics();
     }, [fetchTopics]);
 
-    const onRemoveTopicFromLocalStorage = React.useCallback((topicId: TopicId) => {
+    const onRemoveTopicFromLocalStorage = React.useCallback((topicId: string) => {
         setTopics((prevState) => prevState.filter((topic) => topic.topicId !== topicId));
         LocalStorageHelper.deleteTopicId(topicId.toString());
     }, []);
@@ -169,7 +180,7 @@ let TopicView = ({ className }: Props) => {
 
     React.useEffect(() => {
         topics.forEach((topic) => {
-            LocalStorageHelper.storeTopicId(topic.topicId.toString());
+            LocalStorageHelper.storeTopicId(topic.topicId);
         });
     }, [topics]);
 
@@ -183,7 +194,7 @@ let TopicView = ({ className }: Props) => {
             <Box>
                 <div className="header">
                     {/* Topic Controls */}
-                    <Paper elevation={3} sx={{ p: "1rem" }}>
+                    <Paper sx={{ p: "1rem" }}>
                         <Grid container spacing={3} alignItems="center">
                             {/* ID Input and Fetch Button Group */}
                             <Grid>
@@ -214,7 +225,7 @@ let TopicView = ({ className }: Props) => {
                                                     disabled={loadingTopic || inputTopicId.length <= 4}
                                                     onClick={handleFetchTopic}
                                                 >
-                                                    {loadingTopic ? "Loading..." : "Fetch Topic"}
+                                                    {loadingTopic ? "Loading..." : "Get"}
                                                 </Button>
                                             </Tooltip>
                                         </Grid>
@@ -227,8 +238,7 @@ let TopicView = ({ className }: Props) => {
                                 <Box
                                     sx={(theme) => ({
                                         backgroundColor: theme.palette.background.default,
-                                        p: 2,
-                                        borderRadius: 2,
+                                        p: "1rem",
                                     })}
                                 >
                                     <Tooltip title="Create a new topic using Consensus Service" arrow>
@@ -239,7 +249,7 @@ let TopicView = ({ className }: Props) => {
                                             variant="contained"
                                             onClick={() => setOpenCreateTopicDialog(true)}
                                         >
-                                            Create New Topic
+                                            Create Topic
                                         </Button>
                                     </Tooltip>
                                 </Box>
@@ -268,7 +278,7 @@ let TopicView = ({ className }: Props) => {
                 >
                     {selectedTopic && (
                         <TopicMessagesList
-                            topicId={selectedTopic.topicId}
+                            topic={selectedTopic}
                             topicMessages={selectedTopicTopicMessages}
                             onCreateTopicMessage={onCreateTopicMessage}
                         />
@@ -282,19 +292,16 @@ let TopicView = ({ className }: Props) => {
                     <TextField
                         fullWidth
                         label="Memo"
-                        variant="standard"
                         value={memo}
-                        onChange={onTopicMemoChange}
+                        variant="standard"
                         helperText="Enter a memo for the topic"
+                        onChange={onTopicMemoChange}
                     />
 
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid>
                             <Tooltip title="Only admin can delete Topics" arrow>
                                 <Box display="flex" alignItems="center">
-                                    <Typography variant="body2" sx={{ mr: 1 }}>
-                                        Not Admin
-                                    </Typography>
                                     <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
                                     <Typography variant="body2" sx={{ ml: 1 }}>
                                         Admin
@@ -305,10 +312,6 @@ let TopicView = ({ className }: Props) => {
                         <Grid>
                             <Tooltip title="Only specified accounts can send Topic messages into private Topics" arrow>
                                 <Box display="flex" alignItems="center">
-                                    <Typography variant="body2" sx={{ mr: 1 }}>
-                                        Public
-                                    </Typography>
-
                                     <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
 
                                     <Typography variant="body2" sx={{ ml: 1 }}>

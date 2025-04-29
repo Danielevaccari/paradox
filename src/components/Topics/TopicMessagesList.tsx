@@ -16,9 +16,8 @@ import {
     useTheme,
     IconButton,
 } from "@mui/material";
-import { Message } from "../../Hedera/types";
+import { Message, Topic } from "../../Hedera/types";
 import React, { useState } from "react";
-import { TopicId } from "@hashgraph/sdk";
 import { Hedera } from "../../Hedera/hedera";
 import { DataType } from "../../Enumerations/enumerations";
 import styled from "styled-components";
@@ -31,12 +30,12 @@ import { LocalStorageHelper } from "../../LocalStorage/localStorageHelper";
 
 type Props = {
     className?: string;
-    topicId: TopicId | string;
+    topic: Topic;
     topicMessages: Array<Message>;
     onCreateTopicMessage: (message: string) => void;
 };
 
-let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Props) => {
+let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage }: Props) => {
     const [byteSize, setByteSize] = useState(0);
     const [openJsonEditor, setOpenJsonEditor] = React.useState(false);
     const [textEditorValue, setTextEditorValue] = React.useState<string>("{}");
@@ -108,39 +107,51 @@ let TopicMessagesList = ({ className, topicMessages, onCreateTopicMessage }: Pro
                     padding: "1rem",
                 }}
             >
-                <Box>
-                    <Select
-                        size="small"
-                        variant="outlined"
-                        value={selectedDataType}
-                        MenuProps={{
-                            anchorOrigin: {
-                                vertical: "bottom",
-                                horizontal: "left",
-                            },
-                            transformOrigin: {
-                                vertical: "top",
-                                horizontal: "right",
-                            },
-                        }}
-                        onChange={(event) => setSelectedDataType(event.target.value as DataType)}
-                    >
-                        {Object.entries(DataType).map(
-                            ([key, value]) =>
-                                typeof value === "number" && (
-                                    <MenuItem key={value} value={value}>
-                                        {key}
-                                    </MenuItem>
-                                ),
-                        )}
-                    </Select>
-                </Box>
+                {topic.deleted ? (
+                    <>
+                        <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Message submission is disabled for deleted topics
+                            </Typography>
+                        </Box>
+                    </>
+                ) : (
+                    <>
+                        <Box>
+                            <Select
+                                size="small"
+                                variant="outlined"
+                                value={selectedDataType}
+                                MenuProps={{
+                                    anchorOrigin: {
+                                        vertical: "bottom",
+                                        horizontal: "left",
+                                    },
+                                    transformOrigin: {
+                                        vertical: "top",
+                                        horizontal: "right",
+                                    },
+                                }}
+                                onChange={(event) => setSelectedDataType(event.target.value as DataType)}
+                            >
+                                {Object.entries(DataType).map(
+                                    ([key, value]) =>
+                                        typeof value === "number" && (
+                                            <MenuItem key={value} value={value}>
+                                                {key}
+                                            </MenuItem>
+                                        ),
+                                )}
+                            </Select>
+                        </Box>
 
-                <Box>
-                    <Button variant="contained" color="success" size="medium" onClick={handleOpenJsonEditor}>
-                        New message
-                    </Button>
-                </Box>
+                        <Box>
+                            <Button variant="contained" color="success" size="medium" onClick={handleOpenJsonEditor}>
+                                New message
+                            </Button>
+                        </Box>
+                    </>
+                )}
 
                 {/* Font Size Buttons */}
                 <Box sx={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexGrow: 1 }}>

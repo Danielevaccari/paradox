@@ -44,16 +44,43 @@ type Transaction = {
     token_transfers: Array<unknown>;
     transaction_hash: string;
     transaction_id: string;
-    transfers: {
+    transfers: Array<{
         account: string;
         amount: number;
         is_approval: boolean;
-    }[];
+    }>;
     valid_duration_seconds: string;
     valid_start_timestamp: string;
 };
 
 type Topic = {
+    topicId: string;
+    memo: string;
+    sequenceNumber?: string;
+    runningHash?: Array<string>;
+    expirationTime: string;
+    autoRenewAccount?: string | null;
+    autoRenewPeriod: number;
+    deleted: boolean;
+    adminKey?: {
+        _type: "ProtobufEncoded";
+        key: string;
+    } | null;
+    submitKey?: {
+        _type: "ProtobufEncoded";
+        key: string;
+    } | null;
+    feeScheduleKey?: {
+        _type: "ProtobufEncoded";
+        key: string;
+    } | null;
+    feeExemptKeyList?: Array<{
+        _type: "ProtobufEncoded";
+        key: string;
+    }> | null;
+};
+
+type MirrorNodeTopic = {
     admin_key: {
         _type: "ProtobufEncoded";
         key: string;
@@ -90,4 +117,4 @@ type Topic = {
     topic_id: string;
 };
 
-export type { MessageChunkInfo, Links, Message, DataStructure, Transaction, Topic };
+export type { MessageChunkInfo, Links, Message, DataStructure, Transaction, MirrorNodeTopic, Topic };

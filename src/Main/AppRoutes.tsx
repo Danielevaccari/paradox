@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import { TopicView } from "../Views/TopicView";
 import { TransactionView } from "../Views/TransactionView";
 import { ConfigurationView } from "../Views/ConfigurationView";
 import { AccountView } from "../Views/AccountView";
+import { TopicView } from "../Views/TopicView";
 
 const AppRoutes = () => {
     return (

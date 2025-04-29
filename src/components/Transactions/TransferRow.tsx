@@ -1,4 +1,4 @@
-import { Box, Collapse, IconButton, TableCell, TableRow, Typography, useTheme } from "@mui/material";
+import { Box, Collapse, IconButton, TableCell, TableRow, Tooltip, Typography, useTheme } from "@mui/material";
 import * as React from "react";
 import { hbarLogo } from "../../Hedera/constants";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
@@ -23,13 +23,15 @@ const TransferRow = ({ transaction, accountId }: Props) => {
     return (
         <>
             <TableRow>
-                <TableCell
-                    style={{
-                        width: "10px",
-                        backgroundColor:
-                            transaction.result === SuccessOrFail.Success ? theme.palette.success.light : theme.palette.error.light,
-                    }}
-                />
+                <Tooltip title={transaction.result}>
+                    <TableCell
+                        style={{
+                            width: "10px",
+                            backgroundColor:
+                                transaction.result === SuccessOrFail.Success ? theme.palette.success.light : theme.palette.error.light,
+                        }}
+                    />
+                </Tooltip>
                 <TableCell>
                     <IconButton size="small" onClick={() => setOpen(!open)}>
                         {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
@@ -39,6 +41,7 @@ const TransferRow = ({ transaction, accountId }: Props) => {
                 <TableCell>{`${Hedera.tinybarToHbar(transferWithCurrentAccountId)} ${hbarLogo}`}</TableCell>
                 <TableCell>{transaction.transfers.length}</TableCell>
                 <TableCell>{transaction.name}</TableCell>
+                <TableCell>{transaction.entity_id}</TableCell>
                 <TableCell>{`${Hedera.tinybarToHbar(transaction.charged_tx_fee)} ${hbarLogo}`}</TableCell>
                 <TableCell>{transaction.node}</TableCell>
                 <TableCell>{formatDateToDDMMYYYYhhmmss(new Date(Number(transaction.consensus_timestamp) * 1000))}</TableCell>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import { Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, Tooltip } from "@mui/material";
 import { Transaction } from "../../Hedera/types";
 import { Notifier } from "../../Notifications/notifications";
 import styled from "styled-components";
@@ -42,6 +42,9 @@ let TransactionList = ({ className, accountId }: Props) => {
                                 <TableCell>Amount</TableCell>
                                 <TableCell>Txs</TableCell>
                                 <TableCell>Type</TableCell>
+                                <Tooltip title="E.g. Topic ID, etc">
+                                    <TableCell>Entity ID</TableCell>
+                                </Tooltip>
                                 <TableCell>Fee</TableCell>
                                 <TableCell>Node</TableCell>
                                 <TableCell>Timestamp</TableCell>

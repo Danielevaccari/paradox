@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { TopicId, TopicInfo } from "@hashgraph/sdk";
+import { TopicId } from "@hashgraph/sdk";
 import {
     Box,
     Button,
@@ -14,19 +14,21 @@ import {
     CircularProgress,
     TextField,
     Tooltip,
+    IconButton,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
 import styled from "styled-components";
-import { formatDateToDDMMYYYY } from "../../Utility/date";
+import { Topic } from "../../Hedera/types";
+import { DeleteOutline, PunchClock } from "@mui/icons-material";
 
 type Props = {
     className?: string;
-    topics: Array<TopicInfo>;
-    onSelectTopic: (topic: TopicInfo) => void;
-    onDeleteTopic: (topicId: TopicId) => void;
+    topics: Array<Topic>;
+    onSelectTopic: (topic: Topic) => void;
+    onDeleteTopic: (topicId: string) => void;
     refreshTopicView: () => void;
-    onRemoveTopicFromLocalStorage: (topicId: TopicId) => void;
+    onRemoveTopicFromLocalStorage: (topicId: string) => void;
 };
 
 let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView, onRemoveTopicFromLocalStorage }: Props) => {
@@ -34,24 +36,26 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
     const [updatingTopicId, setUpdatingTopicId] = React.useState<string | null>(null);
 
     const handleSelectTopic = React.useCallback(
-        (topic: TopicInfo) => {
+        (topic: Topic) => {
             onSelectTopic(topic);
         },
         [onSelectTopic],
     );
 
     const handleDeleteTopic = React.useCallback(
-        (topicId: TopicId) => {
+        (topicId: string) => {
             onDeleteTopic(topicId);
         },
         [onDeleteTopic],
     );
 
     const handleUpdateTopicExpirationDate = React.useCallback(
-        (topic: TopicInfo) => {
+        (topic: Topic) => {
             const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from NOW max expiration
 
-            Hedera.updateTopic({ topicId: topic.topicId, newExpirationTime: newExpirationTime })
+            const topicId = TopicId.fromString(topic.topicId);
+
+            Hedera.updateTopic({ topicId: topicId, newExpirationTime: newExpirationTime })
                 .then(() => {
                     refreshTopicView();
                 })
@@ -64,7 +68,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
     );
 
     const filteredTopics = useMemo(() => {
-        return topics.filter((topic) => topic.topicMemo?.toLowerCase().includes(searchTerm.toLowerCase()));
+        return topics.filter((topic) => topic.memo?.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [topics, searchTerm]);
 
     return (
@@ -82,7 +86,6 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                         >
                             <TableRow>
                                 <TableCell>ID</TableCell>
-                                <TableCell>Msg amt</TableCell>
                                 <TableCell>
                                     Memo
                                     <TextField
@@ -94,75 +97,67 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         onChange={(event) => setSearchTerm(event.target.value)}
                                     />
                                 </TableCell>
-                                <TableCell>Network</TableCell>
-                                <TableCell>Expires</TableCell>
-                                <TableCell align="right">Actions</TableCell>
+                                <TableCell align="right"> </TableCell>
                             </TableRow>
                         </TableHead>
 
                         <TableBody>
                             {filteredTopics.map((topic) => (
                                 <TableRow
-                                    key={topic.topicId.toString()}
                                     hover
-                                    sx={{ cursor: "pointer" }}
+                                    key={topic.topicId}
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
                                     onClick={() => handleSelectTopic(topic)}
                                 >
-                                    <TableCell align="left" sx={{ width: 50 }}>
-                                        <Typography variant="caption">{topic.topicId.toString()}</Typography>
-                                    </TableCell>
-
-                                    <TableCell align="left" width={150}>
-                                        {topic.sequenceNumber?.toString() || "NaN"}
+                                    <TableCell align="left">
+                                        <Tooltip title={topic.deleted ? "Deleted Topic" : ""}>
+                                            <Typography variant="caption" color={topic.deleted ? "red" : ""}>
+                                                {topic.topicId}
+                                            </Typography>
+                                        </Tooltip>
                                     </TableCell>
 
                                     <TableCell align="left">
-                                        <Typography width={200} variant="body2">
-                                            {topic.topicMemo ?? "Unnamed Topic"}
-                                            {topic.topicMemo && topic.topicMemo.length > 50 ? "..." : ""}
-                                        </Typography>
+                                        <Typography variant="body2">{topic.memo ?? "Unnamed Topic"}</Typography>
                                     </TableCell>
 
-                                    <TableCell width={70}>{topic.ledgerId?.toString().toUpperCase()}</TableCell>
-
-                                    <TableCell>{topic.expirationTime && formatDateToDDMMYYYY(topic.expirationTime.toDate())}</TableCell>
-
                                     <TableCell align="right">
-                                        {topic.submitKey?.toString() === Hedera.getPrivateKey().publicKey.toString() && (
-                                            <Tooltip title="Delete Topic">
-                                                <Button
-                                                    size="small"
-                                                    color="error"
-                                                    disableRipple
-                                                    sx={{ mr: 1 }}
-                                                    variant="outlined"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleDeleteTopic(topic.topicId);
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </Tooltip>
-                                        )}
+                                        {topic.deleted === false &&
+                                            topic.adminKey?.key === Hedera.getPrivateKey().publicKey.toStringRaw() && (
+                                                <Tooltip title="Delete Topic. Topic remains but following topic message submissions will fail">
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        sx={{ m: "0.15rem" }}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleDeleteTopic(topic.topicId);
+                                                        }}
+                                                    >
+                                                        <DeleteOutline />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
 
-                                        {updatingTopicId === topic.topicId.toString() ? (
+                                        {updatingTopicId === topic.topicId ? (
                                             <CircularProgress size={20} />
                                         ) : (
-                                            <Button
-                                                size="small"
-                                                disableRipple
-                                                sx={{ mr: 1 }}
-                                                color="info"
-                                                variant="outlined"
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    setUpdatingTopicId(topic.topicId.toString());
-                                                    handleUpdateTopicExpirationDate(topic);
-                                                }}
-                                            >
-                                                Set Max Expiry
-                                            </Button>
+                                            <Tooltip title="Update Expiration">
+                                                <IconButton
+                                                    size="small"
+                                                    color="info"
+                                                    sx={{ m: "0.15rem" }}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        setUpdatingTopicId(topic.topicId.toString());
+                                                        handleUpdateTopicExpirationDate(topic);
+                                                    }}
+                                                >
+                                                    <PunchClock fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
                                         )}
 
                                         <Tooltip title="Remove from Local Storage">
@@ -171,6 +166,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                 disableRipple
                                                 color="secondary"
                                                 variant="outlined"
+                                                sx={{ m: "0.15rem", minWidth: "40px" }} // Custom width
                                                 onClick={(event) => {
                                                     event.stopPropagation();
                                                     onRemoveTopicFromLocalStorage(topic.topicId);

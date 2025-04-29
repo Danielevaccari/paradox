@@ -14,8 +14,9 @@ import {
     PrivateKey,
     TopicDeleteTransaction,
     TopicUpdateTransaction,
+    TopicInfo,
 } from "@hashgraph/sdk";
-import { Message } from "./types";
+import { Message, Topic } from "./types";
 
 export class Hedera {
     private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
@@ -143,13 +144,15 @@ export class Hedera {
         return receipt.status.toString();
     }
 
-    static async deleteTopicById(topicId: TopicId) {
-        const response = await new TopicDeleteTransaction({ topicId }).execute(this.client);
+    static async deleteTopicById(topicId: TopicId | string) {
+        const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
+        const response = await new TopicDeleteTransaction({ topicId: currentTopicId }).execute(this.client);
         return await response.getReceipt(this.client);
     }
 
-    static async createTopicMessage(topicId: TopicId, message: string) {
-        const tx = new TopicMessageSubmitTransaction({ topicId, message });
+    static async createTopicMessage(topicId: TopicId | string, message: string) {
+        const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
+        const tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message });
         const response = await tx.execute(this.client);
         return await response.getReceipt(this.client);
     }
@@ -243,5 +246,19 @@ export class Hedera {
 
     static tinybarToHbar(tinybar: number) {
         return (tinybar / 1e8).toFixed(6); // 1 HBAR = 10^8 tinybars
+    }
+
+    static transformHederaTopicInfoToGenericTopic(hederaTopic: TopicInfo): Topic {
+        return {
+            deleted: false,
+            memo: hederaTopic.topicMemo,
+            topicId: hederaTopic.topicId.toString(),
+            adminKey: { _type: "ProtobufEncoded", key: "" },
+            sequenceNumber: hederaTopic.sequenceNumber?.toString(),
+            expirationTime: hederaTopic.expirationTime?.toString() ?? "",
+            autoRenewAccount: hederaTopic.autoRenewAccountId?.toString(),
+            autoRenewPeriod: Number(hederaTopic.autoRenewPeriod?.toString()),
+            submitKey: { _type: "ProtobufEncoded", key: hederaTopic.submitKey?._toProtobufKey().RSA_3072?.toString() ?? "" },
+        };
     }
 }
