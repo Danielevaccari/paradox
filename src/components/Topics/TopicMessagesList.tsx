@@ -14,6 +14,7 @@ import {
     FormControl,
     useTheme,
     IconButton,
+    Tooltip,
 } from "@mui/material";
 import { TopicMessage, Topic } from "../../Hedera/types";
 import React, { useState } from "react";
@@ -193,6 +194,30 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                             return (
                                 <ListItem key={index} alignItems="flex-start">
                                     <Box sx={{ width: "100%", wordBreak: "break-word" }}>
+                                        {/* Metadata Header */}
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                fontSize: "0.75rem",
+                                                padding: "0rem 0.25rem 0.25rem 0.25rem",
+                                                justifyContent: "space-between",
+                                                color: theme.palette.text.secondary,
+                                                backgroundColor: theme.palette.background.paper,
+                                            }}
+                                        >
+                                            <Tooltip title="Message sequence number. Might not be continuous if chunks exist" arrow>
+                                                <span>{msg.sequence_number}</span>
+                                            </Tooltip>
+
+                                            <Tooltip title="Consensus timestamp" arrow>
+                                                <span>{timestamp}</span>
+                                            </Tooltip>
+
+                                            <Tooltip title="Sender Account ID" arrow>
+                                                <span>{msg.payer_account_id}</span>
+                                            </Tooltip>
+                                        </Box>
+
                                         <Editor
                                             value={message}
                                             language={selectedLanguage}
@@ -205,21 +230,6 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                                                 wordWrap: "on",
                                             }}
                                         />
-
-                                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                            <Typography fontSize="0.75rem" color="text.secondary">
-                                                {msg.sequence_number}
-                                            </Typography>
-
-                                            <Typography fontSize="0.75rem" color="text.secondary">
-                                                {timestamp}
-                                            </Typography>
-
-                                            <Typography fontSize="0.75rem" color="text.secondary">
-                                                {msg.payer_account_id}
-                                            </Typography>
-                                        </Box>
-                                        <hr style={{ margin: 0 }} />
                                     </Box>
                                 </ListItem>
                             );
