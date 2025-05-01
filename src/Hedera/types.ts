@@ -4,7 +4,7 @@ type MessageChunkInfo = {
     total: number;
 };
 
-type Message = {
+type TopicMessage = {
     chunk_info: MessageChunkInfo;
     consensus_timestamp: string;
     message: string;
@@ -20,7 +20,7 @@ type Links = {
 };
 
 type DataStructure = {
-    messages: Array<Message>;
+    messages: Array<TopicMessage>;
     links: Links;
 };
 
@@ -117,4 +117,4 @@ type MirrorNodeTopic = {
     topic_id: string;
 };
 
-export type { MessageChunkInfo, Links, Message, DataStructure, Transaction, MirrorNodeTopic, Topic };
+export type { MessageChunkInfo, Links, TopicMessage, DataStructure, Transaction, MirrorNodeTopic, Topic };

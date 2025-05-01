@@ -16,11 +16,15 @@ import {
     TopicUpdateTransaction,
     TopicInfo,
 } from "@hashgraph/sdk";
-import { Message, Topic } from "./types";
+import { TopicMessage, Topic } from "./types";
 
 export class Hedera {
     private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
     private static privateKey = PrivateKey.fromStringECDSA(import.meta.env.VITE_MY_PRIVATE_KEY ?? "");
+
+    // Topic message settings
+    private static maxTopicMessageTxFee = 0.001; // HBAR
+    private static maxTopicMessageChunks = 10; // Max number of chunks for topic messages. 1 chunk default max size is 1024 bytes. So max topic message size is chunkAmount * 1024
 
     private static client: Client = (() => {
         if (!this.accountId || !this.privateKey) {
@@ -152,7 +156,10 @@ export class Hedera {
 
     static async createTopicMessage(topicId: TopicId | string, message: string) {
         const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
-        const tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message });
+        const tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message })
+            .setMaxTransactionFee(this.maxTopicMessageTxFee)
+            .setMaxChunks(this.maxTopicMessageChunks);
+
         const response = await tx.execute(this.client);
         return await response.getReceipt(this.client);
     }
@@ -225,9 +232,9 @@ export class Hedera {
     //     }
     // }
 
-    static assembleChunkedMessages(messages: Array<Message>): Message[] {
+    static assembleChunkedMessages(messages: Array<TopicMessage>): TopicMessage[] {
         let temp = "";
-        const completed: Message[] = [];
+        const completed: TopicMessage[] = [];
 
         for (const message of messages) {
             if (message.chunk_info.number === 1) {
@@ -260,5 +267,21 @@ export class Hedera {
             autoRenewPeriod: Number(hederaTopic.autoRenewPeriod?.toString()),
             submitKey: { _type: "ProtobufEncoded", key: hederaTopic.submitKey?._toProtobufKey().RSA_3072?.toString() ?? "" },
         };
+    }
+
+    static getMaxTopicMessageTxFee(): number {
+        return this.maxTopicMessageTxFee;
+    }
+
+    static setMaxTopicMessageTxFee(fee: number) {
+        this.maxTopicMessageTxFee = fee;
+    }
+
+    static getMaxTopicMessageChunks(): number {
+        return this.maxTopicMessageChunks;
+    }
+
+    static setMaxTopicMessageChunks(chunks: number) {
+        this.maxTopicMessageChunks = chunks;
     }
 }

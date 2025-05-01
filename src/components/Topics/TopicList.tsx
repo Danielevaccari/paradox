@@ -113,14 +113,16 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                 >
                                     <TableCell align="left">
                                         <Tooltip title={topic.deleted ? "Deleted Topic" : ""}>
-                                            <Typography variant="caption" color={topic.deleted ? "red" : ""}>
+                                            <Typography variant="caption" color={topic.deleted ? "crimson" : ""}>
                                                 {topic.topicId}
                                             </Typography>
                                         </Tooltip>
                                     </TableCell>
 
                                     <TableCell align="left">
-                                        <Typography variant="body2">{topic.memo ?? "Unnamed Topic"}</Typography>
+                                        <Typography variant="body2" color={topic.deleted ? "crimson" : ""}>
+                                            {topic.memo ?? "Unnamed Topic"}
+                                        </Typography>
                                     </TableCell>
 
                                     <TableCell align="right">
@@ -130,7 +132,6 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                     <IconButton
                                                         size="small"
                                                         color="error"
-                                                        sx={{ m: "0.15rem" }}
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleDeleteTopic(topic.topicId);

@@ -28,13 +28,14 @@ export class LocalStorageHelper {
         localStorage.setItem("themeMode", mode);
     }
 
-    static getTopicMessageFontSize(): string {
+    static getTopicMessageFontSize() {
         const fontSize = localStorage.getItem("topicMessageFontSize");
-        return fontSize ? fontSize : "0.9rem"; // Default font size
+        const fontSizeNumber = parseInt(fontSize as string, 10);
+        return fontSizeNumber ?? 12; // Default font size
     }
 
-    static setTopicMessageFontSize(fontSize: string): void {
-        localStorage.setItem("topicMessageFontSize", fontSize);
+    static setTopicMessageFontSize(fontSize: number): void {
+        localStorage.setItem("topicMessageFontSize", fontSize.toString());
     }
 
     static getTopicMessageEditorType(): string {

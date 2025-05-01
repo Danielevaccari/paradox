@@ -1,6 +1,15 @@
 enum DataType {
-    PLAINTEXT = 1,
+    TEXT = 1,
     JSON = 2,
 }
 
-export { DataType };
+enum SupportedLanguages {
+    JSON = "json",
+    YAML = "yaml",
+    HTML = "html",
+    XML = "xml",
+    CSV = "csv",
+    TEXT = "text",
+}
+
+export { DataType, SupportedLanguages };

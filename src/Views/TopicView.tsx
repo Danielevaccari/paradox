@@ -15,7 +15,7 @@ import {
     Tooltip,
 } from "@mui/material";
 import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
-import { Message, Topic } from "../Hedera/types";
+import { TopicMessage, Topic } from "../Hedera/types";
 import { Hedera } from "../Hedera/hedera";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 import styled from "styled-components";
@@ -35,9 +35,9 @@ let TopicView = ({ className }: Props) => {
     const [loadingTopic, setLoadingTopic] = React.useState(false);
     const [creatingTopic, setCreatingTopic] = React.useState(false);
     const [topics, setTopics] = React.useState<Array<Topic>>([]);
-    const [openCreateTopicDialog, setOpenCreateTopicDialog] = React.useState(false);
     const [selectedTopic, setSelectedTopic] = React.useState<Topic | null>(null);
-    const [selectedTopicTopicMessages, setSelectedTopicTopicMessages] = React.useState<Array<Message>>([]);
+    const [openCreateTopicDialog, setOpenCreateTopicDialog] = React.useState(false);
+    const [selectedTopicTopicMessages, setSelectedTopicTopicMessages] = React.useState<Array<TopicMessage>>([]);
 
     const onTopicMemoChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         setMemo(event.target.value);
@@ -274,7 +274,7 @@ let TopicView = ({ className }: Props) => {
                     anchor="right"
                     open={Boolean(selectedTopic)}
                     onClose={() => setSelectedTopic(null)}
-                    slotProps={{ paper: { sx: { width: "50%", padding: "1rem 0px 1rem 1rem" } } }}
+                    slotProps={{ paper: { sx: { width: "50%" } } }}
                 >
                     {selectedTopic && (
                         <TopicMessagesList

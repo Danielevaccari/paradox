@@ -1,14 +1,14 @@
 import { TopicId } from "@hashgraph/sdk";
 import { Notifier } from "../Notifications/notifications";
-import { DataStructure, Message, MirrorNodeTopic, Topic } from "./types";
+import { DataStructure, TopicMessage, MirrorNodeTopic, Topic } from "./types";
 
 export class HederaMirrorNode {
     // Static variable to hold the base URL for the mirror node
     private static readonly BASE_URL = "https://testnet.mirrornode.hedera.com/api/v1";
 
     // Fetch raw messages from the Mirror Node API for a specific topic
-    private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string) {
-        const url = `${this.BASE_URL}/topics/${topicId.toString()}/messages`;
+    private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string, limit: number = 100) {
+        const url = `${this.BASE_URL}/topics/${topicId.toString()}/messages?limit=${limit}`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -20,9 +20,9 @@ export class HederaMirrorNode {
     }
 
     // Assemble chunked messages into complete ones from base64 encoded parts
-    static assembleChunkedMessages(messages: Array<Message>): Message[] {
+    static assembleChunkedMessages(messages: Array<TopicMessage>): TopicMessage[] {
         let temp = "";
-        const completed: Message[] = [];
+        const completed: TopicMessage[] = [];
 
         for (const message of messages) {
             if (message.chunk_info.number === 1) {

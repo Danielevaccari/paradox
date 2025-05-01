@@ -2,7 +2,6 @@ import {
     Typography,
     List,
     ListItem,
-    ListItemText,
     Box,
     Button,
     Select,
@@ -16,10 +15,10 @@ import {
     useTheme,
     IconButton,
 } from "@mui/material";
-import { Message, Topic } from "../../Hedera/types";
+import { TopicMessage, Topic } from "../../Hedera/types";
 import React, { useState } from "react";
 import { Hedera } from "../../Hedera/hedera";
-import { DataType } from "../../Enumerations/enumerations";
+import { SupportedLanguages } from "../../Enumerations/enumerations";
 import styled from "styled-components";
 import { formatConsensusTime } from "../../Utility/date";
 import { Notifier } from "../../Notifications/notifications";
@@ -27,37 +26,55 @@ import Editor from "@monaco-editor/react";
 import { calculateByteSize } from "../../Utility/math";
 import { Add, Remove } from "@mui/icons-material";
 import { LocalStorageHelper } from "../../LocalStorage/localStorageHelper";
+import { getEditorHeight } from "../../Utility/misc";
 
 type Props = {
     className?: string;
     topic: Topic;
-    topicMessages: Array<Message>;
+    topicMessages: Array<TopicMessage>;
     onCreateTopicMessage: (message: string) => void;
 };
 
 let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage }: Props) => {
     const [byteSize, setByteSize] = useState(0);
-    const [openJsonEditor, setOpenJsonEditor] = React.useState(false);
-    const [textEditorValue, setTextEditorValue] = React.useState<string>("{}");
-    const [selectedLanguage, setSelectedLanguage] = React.useState<string>("json");
+    const [textEditorIsOpen, setTextEditorIsOpen] = React.useState(false);
+    const [textEditorValue, setTextEditorValue] = React.useState<string>("");
     const [fontSize, setFontSize] = React.useState(LocalStorageHelper.getTopicMessageFontSize());
-    const [selectedDataType, setSelectedDataType] = React.useState<DataType>(DataType.PLAINTEXT);
+    const [selectedLanguage, setSelectedLanguage] = React.useState<SupportedLanguages>(SupportedLanguages.JSON);
 
     const theme = useTheme();
 
     const handleOpenJsonEditor = () => {
-        setTextEditorValue("{}");
-        setOpenJsonEditor(true);
+        if (selectedLanguage === SupportedLanguages.JSON) {
+            setTextEditorValue("");
+        } else if (selectedLanguage === SupportedLanguages.TEXT) {
+            setTextEditorValue("");
+        }
+
+        setTextEditorIsOpen(true);
     };
 
     const onAcceptTextEditor = () => {
-        try {
-            const parsed = JSON.parse(textEditorValue);
-            const jsonString = JSON.stringify(parsed);
-            onCreateTopicMessage(jsonString);
-            setOpenJsonEditor(false);
-        } catch {
-            Notifier.showError("Invalid JSON");
+        switch (selectedLanguage) {
+            case SupportedLanguages.TEXT:
+                onCreateTopicMessage(textEditorValue);
+                setTextEditorIsOpen(false);
+
+                break;
+            case SupportedLanguages.JSON:
+                try {
+                    const parsed = JSON.parse(textEditorValue);
+                    const jsonString = JSON.stringify(parsed);
+
+                    onCreateTopicMessage(jsonString);
+                    setTextEditorIsOpen(false);
+                } catch {
+                    Notifier.showError("Invalid JSON");
+                }
+                break;
+            default:
+                Notifier.showError("Unsupported data type");
+                break;
         }
     };
 
@@ -70,27 +87,15 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
 
     const changeFontSize = (num: number) => {
         setFontSize((prevSize) => {
-            // Parse the previous font size string (e.g., "1.5rem") to a float number
-            const currentSize = parseFloat(prevSize);
+            let newFontSize = prevSize + num;
 
-            // Calculate the new font size by adding the adjustment
-            let newFontSize = currentSize + num;
+            // Clamp the font size between 0.5 and 3
+            newFontSize = Math.max(6, Math.min(newFontSize, 30));
 
-            // Ensure the new font size doesn't exceed 3rem or go below 0.5rem
-            if (newFontSize > 3) {
-                newFontSize = 3;
-            }
-            if (newFontSize < 0.5) {
-                newFontSize = 0.5;
-            }
+            // Save as number (you can stringify it if storing in localStorage)
+            LocalStorageHelper.setTopicMessageFontSize(newFontSize);
 
-            // Convert the number back to a string with 'rem' unit
-            const newFontSizeStr = newFontSize.toFixed(1) + "rem";
-
-            // Store the new font size in local storage
-            LocalStorageHelper.setTopicMessageFontSize(newFontSizeStr);
-
-            return newFontSizeStr;
+            return newFontSize;
         });
     };
 
@@ -121,7 +126,7 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                             <Select
                                 size="small"
                                 variant="outlined"
-                                value={selectedDataType}
+                                value={selectedLanguage}
                                 MenuProps={{
                                     anchorOrigin: {
                                         vertical: "bottom",
@@ -132,11 +137,11 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                                         horizontal: "right",
                                     },
                                 }}
-                                onChange={(event) => setSelectedDataType(event.target.value as DataType)}
+                                onChange={(event) => setSelectedLanguage(event.target.value as SupportedLanguages)}
                             >
-                                {Object.entries(DataType).map(
+                                {Object.entries(SupportedLanguages).map(
                                     ([key, value]) =>
-                                        typeof value === "number" && (
+                                        typeof value === "string" && (
                                             <MenuItem key={value} value={value}>
                                                 {key}
                                             </MenuItem>
@@ -147,7 +152,7 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
 
                         <Box>
                             <Button variant="contained" color="success" size="medium" onClick={handleOpenJsonEditor}>
-                                New message
+                                New msg
                             </Button>
                         </Box>
                     </>
@@ -155,10 +160,10 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
 
                 {/* Font Size Buttons */}
                 <Box sx={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexGrow: 1 }}>
-                    <IconButton onClick={() => changeFontSize(0.1)}>
+                    <IconButton onClick={() => changeFontSize(1)}>
                         <Add />
                     </IconButton>
-                    <IconButton onClick={() => changeFontSize(-0.1)}>
+                    <IconButton onClick={() => changeFontSize(-1)}>
                         <Remove />
                     </IconButton>
                 </Box>
@@ -167,15 +172,15 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
             {/* Scrollable Message List */}
             <Box className="scroll-container">
                 <List>
-                    {Hedera.assembleChunkedMessages(topicMessages)
-                        .reverse()
+                    {topicMessages
+                        .sort((a, b) => b.sequence_number - a.sequence_number)
                         .map((msg, index) => {
                             let message = "";
                             const decodedTopicMessage = Hedera.decodeBase64ToString(msg.message);
 
-                            if (selectedDataType === DataType.PLAINTEXT) {
+                            if (selectedLanguage === SupportedLanguages.TEXT) {
                                 message = decodedTopicMessage;
-                            } else if (selectedDataType === DataType.JSON) {
+                            } else if (selectedLanguage === SupportedLanguages.JSON) {
                                 try {
                                     message = JSON.stringify(JSON.parse(decodedTopicMessage), null, 2);
                                 } catch {
@@ -188,8 +193,17 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                             return (
                                 <ListItem key={index} alignItems="flex-start">
                                     <Box sx={{ width: "100%", wordBreak: "break-word" }}>
-                                        <ListItemText
-                                            primary={<Typography sx={{ whiteSpace: "pre-wrap", fontSize: fontSize }}>{message}</Typography>}
+                                        <Editor
+                                            value={message}
+                                            language={selectedLanguage}
+                                            height={getEditorHeight(message, fontSize)}
+                                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs-light"}
+                                            options={{
+                                                readOnly: true,
+                                                fontSize: fontSize,
+                                                lineNumbers: "off",
+                                                wordWrap: "on",
+                                            }}
                                         />
 
                                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -214,11 +228,15 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
             </Box>
 
             {/* JSON Editor Dialog */}
-            <Dialog open={openJsonEditor} onClose={() => setOpenJsonEditor(false)} fullWidth maxWidth="lg">
+            <Dialog open={textEditorIsOpen} onClose={() => setTextEditorIsOpen(false)} fullWidth maxWidth="lg">
                 <DialogTitle>
                     <FormControl fullWidth>
                         <InputLabel>Language</InputLabel>
-                        <Select value={selectedLanguage} label="Language" onChange={(event) => setSelectedLanguage(event.target.value)}>
+                        <Select
+                            label="Language"
+                            value={selectedLanguage}
+                            onChange={(event) => setSelectedLanguage(event.target.value as SupportedLanguages)}
+                        >
                             <MenuItem value="json">JSON</MenuItem>
                             <MenuItem value="yaml">YAML</MenuItem>
                             <MenuItem value="html">HTML</MenuItem>
@@ -238,10 +256,10 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Typography variant="body2" sx={{ padding: 2 }}>
+                    <Typography variant="body2" sx={{ padding: 0 }}>
                         {byteSize} bytes
                     </Typography>
-                    <Button onClick={() => setOpenJsonEditor(false)}>Close</Button>
+                    <Button onClick={() => setTextEditorIsOpen(false)}>Close</Button>
 
                     <Button onClick={onAcceptTextEditor} variant="contained" color="primary">
                         Send
