@@ -1,10 +1,25 @@
 import { TopicId } from "@hashgraph/sdk";
 import { Notifier } from "../Notifications/notifications";
 import { DataStructure, TopicMessage, MirrorNodeTopic, Topic } from "./types";
+import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 export class HederaMirrorNode {
-    // Static variable to hold the base URL for the mirror node
-    private static readonly BASE_URL = "https://testnet.mirrornode.hedera.com/api/v1";
+    // Get base URL based on the selected network
+    private static get BASE_URL(): string {
+        const network = LocalStorageHelper.getHederaNetwork();
+
+        switch (network) {
+            case "mainnet":
+                return "https://mainnet-public.mirrornode.hedera.com/api/v1";
+            case "previewnet":
+                return "https://previewnet.mirrornode.hedera.com/api/v1";
+            case "local":
+                return "http://localhost:5551/api/v1";
+            case "testnet":
+            default:
+                return "https://testnet.mirrornode.hedera.com/api/v1";
+        }
+    }
 
     // Fetch raw messages from the Mirror Node API for a specific topic
     private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string, limit: number = 100) {
@@ -67,8 +82,7 @@ export class HederaMirrorNode {
 
         const mirrorNodeTopic: MirrorNodeTopic = await response.json();
 
-        const transformedTopic = this.transformMirrorNodeTopicToGenericTopic(mirrorNodeTopic);
-        return transformedTopic;
+        return this.transformMirrorNodeTopicToGenericTopic(mirrorNodeTopic);
     }
 
     // Fetch account transactions from the Mirror Node API

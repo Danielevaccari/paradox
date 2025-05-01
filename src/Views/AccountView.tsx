@@ -10,8 +10,8 @@ type Props = { className?: string };
 
 let AccountView = ({ className }: Props) => {
     const [loading, setLoading] = React.useState(false);
-    const [accountIdInput, setAccountIdInput] = React.useState("");
-    const [accounts, setAccounts] = React.useState<AccountInfo[]>([]);
+    const [accounts, setAccounts] = React.useState<Array<AccountInfo>>([]);
+    const [accountIdInput, setAccountIdInput] = React.useState(Hedera.getAccountId());
     const [selectedAccountId, setSelectedAccountId] = React.useState<AccountId | null>(null);
 
     const fetchAccountInfo = React.useCallback(async (accountId: AccountId) => {
@@ -46,16 +46,6 @@ let AccountView = ({ className }: Props) => {
         }
     }, [accounts, selectedAccountId]);
 
-    React.useEffect(() => {
-        const currentAccountId = Hedera.getAccountId();
-
-        if (currentAccountId) {
-            const id = AccountId.fromString(currentAccountId);
-            setSelectedAccountId(id);
-            fetchAccountInfo(id);
-        }
-    }, [fetchAccountInfo]);
-
     return (
         <div className={className}>
             {/* Fixed Top Content */}
@@ -70,7 +60,7 @@ let AccountView = ({ className }: Props) => {
                                 variant="outlined"
                                 value={accountIdInput}
                                 placeholder="0.0.xxxx"
-                                label="Search Account by ID"
+                                label="Account ID"
                                 onChange={handleAccountIdChange}
                             />
                         </Grid>
@@ -85,7 +75,7 @@ let AccountView = ({ className }: Props) => {
                 {/* Account Details */}
                 {selectedAccount && (
                     <Paper elevation={3} sx={{ p: "1rem" }}>
-                        <Typography gutterBottom>Account Overview</Typography>
+                        <Typography gutterBottom>Overview</Typography>
 
                         <Divider sx={{ mb: 3 }} />
 
@@ -118,7 +108,7 @@ let AccountView = ({ className }: Props) => {
                             <Grid>
                                 <Box>
                                     <Typography variant="subtitle2" color="text.secondary">
-                                        Account Memo
+                                        Memo
                                     </Typography>
                                     <Typography variant="body1">{selectedAccount.accountMemo || "N/A"}</Typography>
                                 </Box>

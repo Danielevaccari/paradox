@@ -1,3 +1,13 @@
+import { Client } from "@hashgraph/sdk";
+
+type HederaNetwork = "mainnet" | "testnet" | "previewnet" | "local";
+
+type NetworkConfig = {
+    network: Client;
+    accountId: string;
+    privateKey: string;
+};
+
 type MessageChunkInfo = {
     initial_transaction_id: unknown;
     number: number;
@@ -117,4 +127,4 @@ type MirrorNodeTopic = {
     topic_id: string;
 };
 
-export type { MessageChunkInfo, Links, TopicMessage, DataStructure, Transaction, MirrorNodeTopic, Topic };
+export type { HederaNetwork, NetworkConfig, MessageChunkInfo, Links, TopicMessage, DataStructure, Transaction, MirrorNodeTopic, Topic };

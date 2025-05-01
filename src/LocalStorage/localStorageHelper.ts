@@ -1,84 +1,93 @@
+import { HederaNetwork } from "../Hedera/types";
 import { Notifier } from "../Notifications/notifications";
 
 export class LocalStorageHelper {
+    static getHederaNetwork(): HederaNetwork {
+        const value = localStorage.getItem("hederaNetworkInUse") as HederaNetwork;
+        return value ?? "testnet"; // default fallback
+    }
+
+    static setHederaNetwork(network: HederaNetwork): void {
+        localStorage.setItem("hederaNetworkInUse", network);
+    }
+
+    private static key(baseKey: string): string {
+        return `${this.getHederaNetwork()}_${baseKey}`;
+    }
+
     static getStoredTopicIds(): Array<string> {
-        const data = localStorage.getItem("savedTopicIds");
+        const data = localStorage.getItem(this.key("savedTopicIds"));
         return data ? JSON.parse(data) : [];
     }
 
     static storeTopicId(topicId: string): void {
-        const current = LocalStorageHelper.getStoredTopicIds();
+        const current = this.getStoredTopicIds();
         if (!current.includes(topicId)) {
-            localStorage.setItem("savedTopicIds", JSON.stringify([topicId, ...current]));
+            localStorage.setItem(this.key("savedTopicIds"), JSON.stringify([topicId, ...current]));
         }
     }
 
     static deleteTopicId(topicId: string): void {
-        const current = LocalStorageHelper.getStoredTopicIds();
+        const current = this.getStoredTopicIds();
         const updated = current.filter((id) => id !== topicId);
-        localStorage.setItem("savedTopicIds", JSON.stringify(updated));
+        localStorage.setItem(this.key("savedTopicIds"), JSON.stringify(updated));
     }
 
     static getThemeMode(): "light" | "dark" {
-        const mode = localStorage.getItem("themeMode");
+        const mode = localStorage.getItem(this.key("themeMode"));
         return mode === "light" || mode === "dark" ? mode : "dark";
     }
 
     static setThemeMode(mode: "light" | "dark"): void {
-        localStorage.setItem("themeMode", mode);
+        localStorage.setItem(this.key("themeMode"), mode);
     }
 
-    static getTopicMessageFontSize() {
-        const fontSize = localStorage.getItem("topicMessageFontSize");
+    static getTopicMessageFontSize(): number {
+        const fontSize = localStorage.getItem(this.key("topicMessageFontSize"));
         const fontSizeNumber = parseInt(fontSize as string, 10);
-        return fontSizeNumber ?? 12; // Default font size
+        return isNaN(fontSizeNumber) ? 12 : fontSizeNumber; // Default font size
     }
 
     static setTopicMessageFontSize(fontSize: number): void {
-        localStorage.setItem("topicMessageFontSize", fontSize.toString());
+        localStorage.setItem(this.key("topicMessageFontSize"), fontSize.toString());
     }
 
     static getTopicMessageEditorType(): string {
-        const editorType = localStorage.getItem("topicMessageEditorType");
+        const editorType = localStorage.getItem(this.key("topicMessageEditorType"));
         return editorType ? editorType : "json"; // Default editor type
     }
 
     static setTopicMessageEditorType(editorType: string): void {
-        localStorage.setItem("topicMessageEditorType", editorType);
+        localStorage.setItem(this.key("topicMessageEditorType"), editorType);
     }
 
-    // Export app data including fontSize and editorType
     static exportAppDataToFile(): void {
         const data = {
-            savedTopicIds: LocalStorageHelper.getStoredTopicIds(),
-            themeMode: LocalStorageHelper.getThemeMode(),
-            topicMessageFontSize: LocalStorageHelper.getTopicMessageFontSize(),
-            topicMessageEditorType: LocalStorageHelper.getTopicMessageEditorType(),
+            savedTopicIds: this.getStoredTopicIds(),
+            themeMode: this.getThemeMode(),
+            topicMessageFontSize: this.getTopicMessageFontSize(),
+            topicMessageEditorType: this.getTopicMessageEditorType(),
         };
 
-        // Get current date and time
         const now = new Date();
         const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, "0"); // Ensure two digits
-        const day = String(now.getDate()).padStart(2, "0"); // Ensure two digits
-        const hours = String(now.getHours()).padStart(2, "0"); // Ensure two digits
-        const minutes = String(now.getMinutes()).padStart(2, "0"); // Ensure two digits
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
 
-        // Format timestamp as YYYY-MM-DD-HH-MM
         const timestamp = `${year}-${month}-${day}-${hours}-${minutes}`;
-
-        const filename = `paradoxLocalStorageBackup_${timestamp}.json`; // Create filename with timestamp
+        const filename = `paradoxLocalStorageBackup_${this.getHederaNetwork()}_${timestamp}.json`;
 
         const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = filename; // Set the dynamic filename
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
     }
 
-    // Import app data
     static importAppDataFromFile(file: File): Promise<void> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -88,19 +97,19 @@ export class LocalStorageHelper {
                     const data = JSON.parse(reader.result as string);
 
                     if (data.savedTopicIds) {
-                        localStorage.setItem("savedTopicIds", JSON.stringify(data.savedTopicIds));
+                        localStorage.setItem(this.key("savedTopicIds"), JSON.stringify(data.savedTopicIds));
                     }
 
                     if (data.themeMode) {
-                        localStorage.setItem("themeMode", data.themeMode);
+                        localStorage.setItem(this.key("themeMode"), data.themeMode);
                     }
 
                     if (data.topicMessageFontSize) {
-                        localStorage.setItem("topicMessageFontSize", data.topicMessageFontSize);
+                        localStorage.setItem(this.key("topicMessageFontSize"), data.topicMessageFontSize);
                     }
 
                     if (data.topicMessageEditorType) {
-                        localStorage.setItem("topicMessageEditorType", data.topicMessageEditorType);
+                        localStorage.setItem(this.key("topicMessageEditorType"), data.topicMessageEditorType);
                     }
 
                     Notifier.showSuccess("Data imported successfully");
@@ -111,7 +120,6 @@ export class LocalStorageHelper {
             };
 
             reader.onerror = () => reject("Error reading the file.");
-
             reader.readAsText(file);
         });
     }

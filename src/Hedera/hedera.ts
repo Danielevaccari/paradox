@@ -16,28 +16,58 @@ import {
     TopicUpdateTransaction,
     TopicInfo,
 } from "@hashgraph/sdk";
-import { TopicMessage, Topic } from "./types";
+import { TopicMessage, Topic, HederaNetwork, NetworkConfig } from "./types";
+import { Notifier } from "../Notifications/notifications";
+
+const NETWORK_CONFIGS: Record<HederaNetwork, () => NetworkConfig> = {
+    mainnet: () => ({
+        network: Client.forMainnet(),
+        accountId: import.meta.env.VITE_MAINNET_MY_ACCOUNT_ID,
+        privateKey: import.meta.env.VITE_MAINNET_MY_PRIVATE_KEY,
+    }),
+    testnet: () => ({
+        network: Client.forTestnet(),
+        accountId: import.meta.env.VITE_TESTNET_MY_ACCOUNT_ID,
+        privateKey: import.meta.env.VITE_TESTNET_MY_PRIVATE_KEY,
+    }),
+    previewnet: () => ({
+        network: Client.forPreviewnet(),
+        accountId: import.meta.env.VITE_PREVIEWNET_MY_ACCOUNT_ID,
+        privateKey: import.meta.env.VITE_PREVIEWNET_MY_PRIVATE_KEY,
+    }),
+    local: () => ({
+        network: Client.forNetwork({ "127.0.0.1:50211": new AccountId(3) }),
+        accountId: import.meta.env.VITE_LOCAL_MY_ACCOUNT_ID,
+        privateKey: import.meta.env.VITE_LOCAL_MY_PRIVATE_KEY,
+    }),
+};
 
 export class Hedera {
-    private static accountId = import.meta.env.VITE_MY_ACCOUNT_ID ?? "";
-    private static privateKey = PrivateKey.fromStringECDSA(import.meta.env.VITE_MY_PRIVATE_KEY ?? "");
+    private static accountId = import.meta.env.VITE_TESTNET_MY_ACCOUNT_ID;
+    private static privateKey = PrivateKey.fromStringECDSA(import.meta.env.VITE_TESTNET_MY_PRIVATE_KEY);
 
-    // Topic message settings
+    private static currentNetwork: HederaNetwork = (localStorage.getItem("hedera-network") as HederaNetwork) || "testnet";
+    private static client: Client = Hedera.initializeClient();
+
     private static maxTopicMessageTxFee = 0.001; // HBAR
     private static maxTopicMessageChunks = 10; // Max number of chunks for topic messages. 1 chunk default max size is 1024 bytes. So max topic message size is chunkAmount * 1024
 
-    private static client: Client = (() => {
-        if (!this.accountId || !this.privateKey) {
-            throw new Error("MY_ACCOUNT_ID and MY_PRIVATE_KEY env vars must be set");
+    private static initializeClient(): Client {
+        const config = NETWORK_CONFIGS[this.currentNetwork]?.();
+
+        if (!config?.accountId || !config?.privateKey) {
+            Notifier.showError(`Missing credentials for network: ${this.currentNetwork}`);
         }
 
-        const client = Client.forTestnet().setOperator(this.accountId, this.privateKey);
+        this.accountId = config.accountId;
+        this.privateKey = PrivateKey.fromStringECDSA(config.privateKey);
 
+        const client = config.network.setOperator(this.accountId, this.privateKey);
         client.setDefaultMaxTransactionFee(new Hbar(1));
         client.setDefaultMaxQueryPayment(new Hbar(1));
 
         return client;
-    })();
+    }
 
     static setAccountId(newAccountId: string) {
         this.accountId = newAccountId;
@@ -55,6 +85,10 @@ export class Hedera {
 
     static getPrivateKey() {
         return this.privateKey;
+    }
+
+    static getNetwork(): HederaNetwork {
+        return this.currentNetwork;
     }
 
     private static updateClient() {

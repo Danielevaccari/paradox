@@ -1,11 +1,25 @@
 import { styled, useTheme } from "@mui/material/styles";
 import { NavLink } from "react-router-dom";
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, IconButton, Tooltip } from "@mui/material";
+import {
+    Box,
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    Typography,
+    IconButton,
+    Tooltip,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
+} from "@mui/material";
 import SunnyIcon from "@mui/icons-material/Sunny";
 import { Bedtime, FileDownload, Save } from "@mui/icons-material";
-import { Hedera } from "../Hedera/hedera";
 import { useColorMode } from "../main";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
+import { useState } from "react";
+import { HederaNetwork } from "../Hedera/types";
 
 const drawerWidth = 180;
 
@@ -24,6 +38,7 @@ const StyledNavLink = styled(NavLink)(({ theme }) => ({
 const AppNavigationDrawer = () => {
     const theme = useTheme();
     const { toggleColorMode } = useColorMode();
+    const [network, setNetwork] = useState<HederaNetwork>(LocalStorageHelper.getHederaNetwork());
 
     const exportData = () => {
         LocalStorageHelper.exportAppDataToFile();
@@ -48,6 +63,14 @@ const AppNavigationDrawer = () => {
         input.click();
     };
 
+    const handleNetworkChange = (event: SelectChangeEvent<HederaNetwork>) => {
+        const selected = event.target.value as HederaNetwork;
+        setNetwork(selected);
+        LocalStorageHelper.setHederaNetwork(selected);
+
+        window.location.reload(); // Apply changes immediately
+    };
+
     return (
         <Drawer
             anchor="left"
@@ -63,12 +86,24 @@ const AppNavigationDrawer = () => {
                 },
             }}
         >
-            <Box sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>
+            <Box sx={{ p: "1rem" }}>
+                <Typography variant="h6" sx={{ mb: "1rem" }}>
                     Paradox
                 </Typography>
 
-                <Typography variant="body2">{` ${Hedera.getNetworkName().toUpperCase()} `}</Typography>
+                <Select
+                    fullWidth
+                    size="small"
+                    value={network}
+                    variant="standard"
+                    sx={{ fontSize: "0.75rem" }}
+                    onChange={handleNetworkChange}
+                >
+                    <MenuItem value="mainnet">MAINNET</MenuItem>
+                    <MenuItem value="testnet">TESTNET</MenuItem>
+                    <MenuItem value="previewnet">PREVIEWNET</MenuItem>
+                    {import.meta.env.VITE_LOCAL_MY_ACCOUNT_ID && <MenuItem value="local">LOCAL</MenuItem>}{" "}
+                </Select>
 
                 {process.env.NODE_ENV === "development" && (
                     <Typography variant="caption" color="orange" fontWeight="bold">
