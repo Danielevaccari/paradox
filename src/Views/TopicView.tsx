@@ -170,6 +170,11 @@ let TopicView = ({ className }: Props) => {
         LocalStorageHelper.deleteTopicId(topicId.toString());
     }, []);
 
+    const onCloseTopicMessageDrawer = React.useCallback(() => {
+        setSelectedTopic(null);
+        setSelectedTopicTopicMessages([]);
+    }, []);
+
     React.useEffect(() => {
         if (!selectedTopic) {
             return;
@@ -273,7 +278,7 @@ let TopicView = ({ className }: Props) => {
                 <Drawer
                     anchor="right"
                     open={Boolean(selectedTopic)}
-                    onClose={() => setSelectedTopic(null)}
+                    onClose={onCloseTopicMessageDrawer}
                     slotProps={{ paper: { sx: { width: "50%" } } }}
                 >
                     {selectedTopic && (
