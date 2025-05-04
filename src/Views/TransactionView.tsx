@@ -15,7 +15,7 @@ let TransactionView = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
     const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
     const [sendTransactionDialogIsOpen, setSendTransactionDialogIsOpen] = React.useState(false);
-    const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string>(Hedera.getAccountId());
+    const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string | undefined>(Hedera.getAccountId());
 
     const onAcceptTransaction = async () => {
         if (transferAmount === null || transferAmount <= 0) {
@@ -134,9 +134,11 @@ let TransactionView = ({ className }: Props) => {
                 </DialogActions>
             </Dialog>
 
-            <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
-                <TransactionList accountId={accountIdForTransactionQuery} />
-            </Box>
+            {accountIdForTransactionQuery && (
+                <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
+                    <TransactionList accountId={accountIdForTransactionQuery} />
+                </Box>
+            )}
         </div>
     );
 };

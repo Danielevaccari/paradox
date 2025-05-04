@@ -215,7 +215,7 @@ let TopicView = ({ className }: Props) => {
                                                 size="small"
                                                 variant="outlined"
                                                 value={inputTopicId}
-                                                label="Enter Topic ID"
+                                                label="Topic ID"
                                                 onChange={handleInputChange}
                                             />
                                         </Grid>

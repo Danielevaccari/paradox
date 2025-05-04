@@ -96,13 +96,18 @@ const AppNavigationDrawer = () => {
                     size="small"
                     value={network}
                     variant="standard"
-                    sx={{ fontSize: "0.75rem" }}
                     onChange={handleNetworkChange}
+                    sx={{
+                        fontSize: "0.75rem",
+                        "& .MuiSelect-icon": {
+                            display: "none",
+                        },
+                    }}
                 >
                     <MenuItem value="mainnet">MAINNET</MenuItem>
                     <MenuItem value="testnet">TESTNET</MenuItem>
                     <MenuItem value="previewnet">PREVIEWNET</MenuItem>
-                    {import.meta.env.VITE_LOCAL_MY_ACCOUNT_ID && <MenuItem value="local">LOCAL</MenuItem>}{" "}
+                    {import.meta.env.VITE_LOCAL_MY_ACCOUNT_ID && <MenuItem value="local">LOCAL</MenuItem>}
                 </Select>
 
                 {process.env.NODE_ENV === "development" && (

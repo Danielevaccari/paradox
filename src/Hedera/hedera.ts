@@ -18,6 +18,7 @@ import {
 } from "@hashgraph/sdk";
 import { TopicMessage, Topic, HederaNetwork, NetworkConfig } from "./types";
 import { Notifier } from "../Notifications/notifications";
+import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 const NETWORK_CONFIGS: Record<HederaNetwork, () => NetworkConfig> = {
     mainnet: () => ({
@@ -43,10 +44,10 @@ const NETWORK_CONFIGS: Record<HederaNetwork, () => NetworkConfig> = {
 };
 
 export class Hedera {
-    private static accountId = import.meta.env.VITE_TESTNET_MY_ACCOUNT_ID;
-    private static privateKey = PrivateKey.fromStringECDSA(import.meta.env.VITE_TESTNET_MY_PRIVATE_KEY);
+    private static accountId?: string;
+    private static privateKey?: PrivateKey;
 
-    private static currentNetwork: HederaNetwork = (localStorage.getItem("hedera-network") as HederaNetwork) || "testnet";
+    private static currentNetwork: HederaNetwork = LocalStorageHelper.getHederaNetwork() || "testnet";
     private static client: Client = Hedera.initializeClient();
 
     private static maxTopicMessageTxFee = 0.001; // HBAR
@@ -57,6 +58,7 @@ export class Hedera {
 
         if (!config?.accountId || !config?.privateKey) {
             Notifier.showError(`Missing credentials for network: ${this.currentNetwork}`);
+            throw new Error("Missing credentials");
         }
 
         this.accountId = config.accountId;
@@ -65,7 +67,6 @@ export class Hedera {
         const client = config.network.setOperator(this.accountId, this.privateKey);
         client.setDefaultMaxTransactionFee(new Hbar(1));
         client.setDefaultMaxQueryPayment(new Hbar(1));
-
         return client;
     }
 
@@ -125,6 +126,9 @@ export class Hedera {
     }
 
     static async sendTransaction(toAccountId: AccountId | string, amount: Hbar | number) {
+        if (!this.accountId) {
+            throw new Error("accountId is not set");
+        }
         const tx = new TransferTransaction().addHbarTransfer(this.accountId, -amount).addHbarTransfer(toAccountId, amount);
 
         const signedTx = await tx.execute(this.client);
@@ -138,12 +142,18 @@ export class Hedera {
     }
 
     static async createAdminTopic(topicMemo?: string) {
+        if (!this.privateKey) {
+            throw new Error("privateKey is not set");
+        }
         const topic = await new TopicCreateTransaction({ topicMemo, adminKey: this.privateKey.publicKey }).execute(this.client);
         const receipt = await topic.getReceipt(this.client);
         return receipt.topicId ?? undefined;
     }
 
     static async createPrivateTopic(topicMemo?: string) {
+        if (!this.privateKey) {
+            throw new Error("privateKey is not set");
+        }
         const topic = await new TopicCreateTransaction({ topicMemo, submitKey: this.privateKey.publicKey }).execute(this.client);
         const receipt = await topic.getReceipt(this.client);
         return receipt.topicId ?? undefined;
@@ -160,6 +170,10 @@ export class Hedera {
         newAutoRenewAccountId?: AccountId | string;
         newExpirationTime?: Date | number | string; // Can be a Date object, timestamp, or ISO string
     }) {
+        if (!this.privateKey) {
+            throw new Error("privateKey is not set");
+        }
+
         let tx = new TopicUpdateTransaction().setTopicId(topicId);
 
         if (newMemo) {
@@ -199,6 +213,9 @@ export class Hedera {
     }
 
     static async createPrivateSubmitTopic(topicMemo?: string) {
+        if (!this.privateKey) {
+            throw new Error("privateKey is not set");
+        }
         const topic = await new TopicCreateTransaction({
             topicMemo,
             submitKey: this.privateKey.publicKey,
@@ -223,6 +240,9 @@ export class Hedera {
     }
 
     static async queryAccountBalance() {
+        if (!this.accountId) {
+            throw new Error("accountId is not set");
+        }
         const balance = await new AccountBalanceQuery().setAccountId(this.accountId).getCost(this.client);
         return balance.toTinybars();
     }
