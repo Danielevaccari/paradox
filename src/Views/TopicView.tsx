@@ -200,7 +200,7 @@ let TopicView = ({ className }: Props) => {
                 <div className="header">
                     {/* Topic Controls */}
                     <Paper sx={{ p: "1rem" }}>
-                        <Grid container spacing={3} alignItems="center">
+                        <Grid container spacing={2} alignItems="center">
                             {/* ID Input and Fetch Button Group */}
                             <Grid>
                                 <Box
@@ -216,6 +216,9 @@ let TopicView = ({ className }: Props) => {
                                                 label="Topic ID"
                                                 variant="outlined"
                                                 value={inputTopicId}
+                                                sx={{
+                                                    width: { xs: "120px", sm: "130px", md: "150px" },
+                                                }}
                                                 onChange={handleInputChange}
                                             />
                                         </Grid>
