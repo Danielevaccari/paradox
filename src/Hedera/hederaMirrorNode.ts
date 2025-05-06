@@ -1,7 +1,8 @@
 import { TopicId } from "@hashgraph/sdk";
 import { Notifier } from "../Notifications/notifications";
-import { DataStructure, TopicMessage, MirrorNodeTopic, Topic } from "./types";
+import { DataStructure, TopicMessage, MirrorNodeTopic, Topic, Transaction } from "./types";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
+import { TransactionType } from "./enumerations";
 
 export class HederaMirrorNode {
     // Get base URL based on the selected network
@@ -10,20 +11,20 @@ export class HederaMirrorNode {
 
         switch (network) {
             case "mainnet":
-                return "https://mainnet-public.mirrornode.hedera.com/api/v1";
+                return "https://mainnet-public.mirrornode.hedera.com";
             case "previewnet":
-                return "https://previewnet.mirrornode.hedera.com/api/v1";
+                return "https://previewnet.mirrornode.hedera.com";
             case "local":
-                return "http://localhost:5551/api/v1";
+                return "http://localhost:5551";
             case "testnet":
             default:
-                return "https://testnet.mirrornode.hedera.com/api/v1";
+                return "https://testnet.mirrornode.hedera.com";
         }
     }
 
     // Fetch raw messages from the Mirror Node API for a specific topic
     private static async fetchRawMessagesFromMirrorNode(topicId: TopicId | string, limit: number = 100) {
-        const url = `${this.BASE_URL}/topics/${topicId.toString()}/messages?limit=${limit}`;
+        const url = `${this.BASE_URL}/api/v1/topics/${topicId.toString()}/messages?limit=${limit}`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -72,7 +73,7 @@ export class HederaMirrorNode {
 
     // Fetch topic info by Topic ID
     static async getTopicInfoById(topicId: TopicId | string) {
-        const url = `${this.BASE_URL}/topics/${topicId.toString()}`;
+        const url = `${this.BASE_URL}/api/v1/topics/${topicId.toString()}`;
 
         const response = await fetch(url);
 
@@ -87,7 +88,7 @@ export class HederaMirrorNode {
 
     // Fetch account transactions from the Mirror Node API
     static async getAccountTransactions(accountId: string, limit = 100, order: "asc" | "desc" = "desc") {
-        const url = `${this.BASE_URL}/transactions?account.id=${accountId}&limit=${limit}&order=${order}`;
+        const url = `${this.BASE_URL}/api/v1/transactions?account.id=${accountId}&limit=${limit}&order=${order}`;
 
         try {
             const response = await fetch(url);
@@ -96,11 +97,61 @@ export class HederaMirrorNode {
                 Notifier.showError(response);
             }
 
-            const data = await response.json();
-            return data.transactions;
+            return (await response.json()) as { links: { next: string }; transactions: Array<Transaction> };
         } catch (error) {
             Notifier.showError(error);
         }
+    }
+
+    // This function fetches the next set of transactions using the provided URL from API response
+    static async getNextAccountTransactions(nextURL: string) {
+        const url = `${this.BASE_URL}${nextURL}`;
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                Notifier.showError(response);
+            }
+
+            return (await response.json()) as { link: { next: string }; transactions: Array<Transaction> };
+        } catch (error) {
+            Notifier.showError(error);
+        }
+    }
+
+    // Fetch account transactions from the Mirror Node API recursively
+    static async getAccountTransactionsRecursively(
+        accountId: string,
+        transactionType?: TransactionType,
+        limit = 100,
+        order: "asc" | "desc" = "desc",
+    ) {
+        const allTransactions: Transaction[] = [];
+        let nextUrl: string | null = `${this.BASE_URL}/api/v1/transactions?account.id=${accountId}&limit=${limit}&order=${order}${
+            transactionType ? `&transactiontype=${transactionType}` : ""
+        }`;
+
+        while (nextUrl) {
+            try {
+                const response = await fetch(nextUrl);
+
+                if (!response.ok) {
+                    Notifier.showError(response);
+                    break;
+                }
+
+                const data = (await response.json()) as { links: { next: string | null }; transactions: Array<Transaction> };
+
+                allTransactions.push(...data.transactions);
+                nextUrl = data.links.next ? `${this.BASE_URL}${data.links.next}` : null;
+            } catch (error) {
+                Notifier.showError(error);
+                break;
+            }
+        }
+
+        return allTransactions;
     }
 
     static transformMirrorNodeTopicToGenericTopic(mirrorNodeTopic: MirrorNodeTopic): Topic {

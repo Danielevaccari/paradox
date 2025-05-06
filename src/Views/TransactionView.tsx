@@ -1,11 +1,26 @@
 import * as React from "react";
-import { Box, Paper, TextField, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {
+    Box,
+    Paper,
+    TextField,
+    Button,
+    Grid,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+} from "@mui/material";
 import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
 import { Hedera } from "../Hedera/hedera";
 import { Notifier } from "../Notifications/notifications";
 import { TransactionList } from "../components/Transactions/TransactionList";
 import { hbarLogo } from "../Hedera/constants";
+import { TransactionType } from "../Hedera/enumerations";
 
 type Props = {
     className?: string;
@@ -14,6 +29,7 @@ type Props = {
 let TransactionView = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
     const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
+    const [transactionType, setTransactionType] = React.useState<TransactionType>();
     const [sendTransactionDialogIsOpen, setSendTransactionDialogIsOpen] = React.useState(false);
     const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string | undefined>(Hedera.getAccountId());
 
@@ -39,7 +55,7 @@ let TransactionView = ({ className }: Props) => {
         <div className={className}>
             <Box sx={{ display: "flex" }}>
                 <Paper elevation={3} sx={{ p: "1rem", width: "100%" }}>
-                    <Grid container spacing={2} alignItems="center">
+                    <Grid container spacing={2} alignItems="center" sx={{ display: "flex" }}>
                         <Grid>
                             <TextField
                                 fullWidth
@@ -47,14 +63,42 @@ let TransactionView = ({ className }: Props) => {
                                 variant="outlined"
                                 label="Account ID"
                                 value={accountIdForTransactionQuery}
+                                sx={{
+                                    width: { xs: "120px", sm: "130px", md: "150px" },
+                                }}
                                 onChange={(event) => setAccountIdForTransactionQuery(event.target.value)}
                             />
                         </Grid>
+
                         <Grid>
+                            <FormControl
+                                fullWidth
+                                size="small"
+                                sx={{
+                                    minWidth: { xs: "120px", sm: "150px", md: "200px" },
+                                }}
+                            >
+                                <InputLabel>Transaction Type</InputLabel>
+                                <Select
+                                    value={transactionType}
+                                    label="Transaction Type"
+                                    onChange={(event) => setTransactionType(event.target.value as TransactionType)}
+                                >
+                                    <MenuItem value={undefined}>All</MenuItem>
+                                    {Object.values(TransactionType).map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {type}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid sx={{ marginLeft: "auto" }}>
                             <Button
                                 fullWidth
                                 size="medium"
-                                color="success"
+                                color="primary"
                                 variant="contained"
                                 onClick={() => setSendTransactionDialogIsOpen(true)}
                             >
@@ -136,7 +180,7 @@ let TransactionView = ({ className }: Props) => {
 
             {accountIdForTransactionQuery && (
                 <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
-                    <TransactionList accountId={accountIdForTransactionQuery} />
+                    <TransactionList accountId={accountIdForTransactionQuery} transactionType={transactionType} />
                 </Box>
             )}
         </div>

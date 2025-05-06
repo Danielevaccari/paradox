@@ -213,9 +213,9 @@ let TopicView = ({ className }: Props) => {
                                         <Grid>
                                             <TextField
                                                 size="small"
+                                                label="Topic ID"
                                                 variant="outlined"
                                                 value={inputTopicId}
-                                                label="Topic ID"
                                                 onChange={handleInputChange}
                                             />
                                         </Grid>
@@ -224,8 +224,8 @@ let TopicView = ({ className }: Props) => {
                                             <Tooltip title="Fetch existing topic info" arrow>
                                                 <Button
                                                     fullWidth
-                                                    color="info"
                                                     size="medium"
+                                                    color="primary"
                                                     variant="contained"
                                                     disabled={loadingTopic || inputTopicId.length <= 4}
                                                     onClick={handleFetchTopic}
@@ -250,7 +250,7 @@ let TopicView = ({ className }: Props) => {
                                         <Button
                                             fullWidth
                                             size="medium"
-                                            color="success"
+                                            color="primary"
                                             variant="contained"
                                             onClick={() => setOpenCreateTopicDialog(true)}
                                         >
@@ -331,7 +331,7 @@ let TopicView = ({ className }: Props) => {
                                 <Button
                                     fullWidth
                                     size="large"
-                                    color="success"
+                                    color="info"
                                     variant="contained"
                                     disabled={creatingTopic || memo.length === 0}
                                     onClick={onCreateTopic}
