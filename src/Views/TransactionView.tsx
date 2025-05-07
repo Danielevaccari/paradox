@@ -53,7 +53,7 @@ let TransactionView = ({ className }: Props) => {
 
     return (
         <div className={className}>
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", height: "10%" }}>
                 <Paper elevation={3} sx={{ p: "1rem", width: "100%" }}>
                     <Grid container spacing={2} alignItems="center" sx={{ display: "flex" }}>
                         <Grid>
@@ -179,7 +179,7 @@ let TransactionView = ({ className }: Props) => {
             </Dialog>
 
             {accountIdForTransactionQuery && (
-                <Box sx={{ flexGrow: 1, overflow: "auto", minHeight: 0 }}>
+                <Box sx={{ height: "90%", overflow: "auto" }}>
                     <TransactionList accountId={accountIdForTransactionQuery} transactionType={transactionType} />
                 </Box>
             )}

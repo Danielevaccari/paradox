@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, Tooltip, TablePagination } from "@mui/material";
+import { Typography, Table, TableHead, TableRow, TableCell, TableBody, Tooltip, TablePagination, Paper, Box } from "@mui/material";
 import { Transaction } from "../../Hedera/types";
 import { Notifier } from "../../Notifications/notifications";
 import styled from "styled-components";
@@ -16,7 +16,7 @@ type Props = {
 
 let TransactionList = ({ className, accountId, transactionType }: Props) => {
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [transactions, setTransactions] = React.useState<Array<Transaction>>([]);
 
     React.useEffect(() => {
@@ -40,17 +40,16 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
 
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0); // Reset to first page when changing rows per page
+        setPage(0);
     };
 
-    // Calculate the transactions to display for the current page
     const paginatedTransactions = transactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <div className={className}>
-            <Paper elevation={3}>
-                {transactions.length > 0 && (
-                    <>
+            {transactions.length > 0 ? (
+                <Paper elevation={2} className="table-container">
+                    <Box className="table-body">
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>
@@ -73,20 +72,20 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
                                 ))}
                             </TableBody>
                         </Table>
-                        <TablePagination
-                            page={page}
-                            component="div"
-                            rowsPerPage={rowsPerPage}
-                            count={transactions.length}
-                            rowsPerPageOptions={[25, 50, 100]}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                        />
-                    </>
-                )}
-
-                {transactions.length === 0 && <Typography>No transactions found for this account</Typography>}
-            </Paper>
+                    </Box>
+                    <TablePagination
+                        page={page}
+                        component="div"
+                        rowsPerPage={rowsPerPage}
+                        count={transactions.length}
+                        rowsPerPageOptions={[25, 50, 100]}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </Paper>
+            ) : (
+                <Typography>No transactions found</Typography>
+            )}
         </div>
     );
 };
@@ -94,6 +93,31 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
 TransactionList = styled(TransactionList)`
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .table-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .table-body {
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .MuiTableCell-root {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .MuiTableRow-root {
+        height: 24px;
+    }
 `;
 
 export { TransactionList };
