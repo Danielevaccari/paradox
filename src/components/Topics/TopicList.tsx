@@ -51,8 +51,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 
     const handleUpdateTopicExpirationDate = React.useCallback(
         (topic: Topic) => {
-            const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from NOW max expiration
-
+            const newExpirationTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from now
             const topicId = TopicId.fromString(topic.topicId);
 
             Hedera.updateTopic({ topicId: topicId, newExpirationTime: newExpirationTime })
@@ -106,12 +105,10 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                 <TableRow
                                     hover
                                     key={topic.topicId}
-                                    sx={{
-                                        cursor: "pointer",
-                                    }}
+                                    sx={{ cursor: "pointer", height: "28px" }}
                                     onClick={() => handleSelectTopic(topic)}
                                 >
-                                    <TableCell align="left">
+                                    <TableCell align="left" sx={{ py: "2px", px: "6px" }}>
                                         <Tooltip title={topic.deleted ? "Deleted Topic" : ""}>
                                             <Typography variant="caption" color={topic.deleted ? "crimson" : ""}>
                                                 {topic.topicId}
@@ -119,37 +116,38 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         </Tooltip>
                                     </TableCell>
 
-                                    <TableCell align="left">
-                                        <Typography variant="body2" color={topic.deleted ? "crimson" : ""}>
+                                    <TableCell align="left" sx={{ py: "2px", px: "6px" }}>
+                                        <Typography variant="caption" color={topic.deleted ? "crimson" : ""}>
                                             {topic.memo ?? "Unnamed Topic"}
                                         </Typography>
                                     </TableCell>
 
-                                    <TableCell align="right">
+                                    <TableCell align="right" sx={{ py: "2px", px: "4px" }}>
                                         {topic.deleted === false &&
-                                            topic.adminKey?.key === Hedera.getPrivateKey().publicKey.toStringRaw() && (
-                                                <Tooltip title="Delete Topic. Topic remains but following topic message submissions will fail">
+                                            topic.adminKey?.key === Hedera.getPrivateKey()?.publicKey.toStringRaw() && (
+                                                <Tooltip title="Delete Topic">
                                                     <IconButton
                                                         size="small"
+                                                        sx={{ p: "2px", m: "0" }}
                                                         color="error"
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleDeleteTopic(topic.topicId);
                                                         }}
                                                     >
-                                                        <DeleteOutline />
+                                                        <DeleteOutline fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
                                             )}
 
                                         {updatingTopicId === topic.topicId ? (
-                                            <CircularProgress size={20} />
+                                            <CircularProgress size={18} sx={{ mx: 0.5 }} />
                                         ) : (
                                             <Tooltip title="Update Expiration">
                                                 <IconButton
                                                     size="small"
                                                     color="info"
-                                                    sx={{ m: "0.15rem" }}
+                                                    sx={{ p: "2px", m: "0" }}
                                                     onClick={(event) => {
                                                         event.stopPropagation();
                                                         setUpdatingTopicId(topic.topicId.toString());
@@ -167,7 +165,12 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                 disableRipple
                                                 color="secondary"
                                                 variant="outlined"
-                                                sx={{ m: "0.15rem", minWidth: "40px" }} // Custom width
+                                                sx={{
+                                                    m: "0",
+                                                    p: "0 4px",
+                                                    minWidth: "32px",
+                                                    fontSize: "0.65rem",
+                                                }}
                                                 onClick={(event) => {
                                                     event.stopPropagation();
                                                     onRemoveTopicFromLocalStorage(topic.topicId);
@@ -190,6 +193,18 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 TopicList = styled(TopicList)`
     width: 100%;
     height: 100%;
+
+    .MuiTableCell-root {
+        padding: 2px 6px;
+    }
+
+    .MuiTableRow-root {
+        height: 28px;
+    }
+
+    .MuiIconButton-root {
+        padding: 2px;
+    }
 `;
 
 export { TopicList };
