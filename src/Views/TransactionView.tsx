@@ -13,6 +13,7 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    SelectChangeEvent,
 } from "@mui/material";
 import styled from "styled-components";
 import { AccountId } from "@hashgraph/sdk";
@@ -21,6 +22,7 @@ import { Notifier } from "../Notifications/notifications";
 import { TransactionList } from "../components/Transactions/TransactionList";
 import { hbarLogo } from "../Hedera/constants";
 import { TransactionType } from "../Hedera/enumerations";
+import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 type Props = {
     className?: string;
@@ -29,9 +31,9 @@ type Props = {
 let TransactionView = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
     const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
-    const [transactionType, setTransactionType] = React.useState<TransactionType>();
     const [sendTransactionDialogIsOpen, setSendTransactionDialogIsOpen] = React.useState(false);
     const [accountIdForTransactionQuery, setAccountIdForTransactionQuery] = React.useState<string | undefined>(Hedera.getAccountId());
+    const [transactionType, setTransactionType] = React.useState<TransactionType>(LocalStorageHelper.getTransactionListTransactionType());
 
     const onAcceptTransaction = async () => {
         if (transferAmount === null || transferAmount <= 0) {
@@ -49,6 +51,12 @@ let TransactionView = ({ className }: Props) => {
             Notifier.showError("Error sending transaction: " + error);
             return false;
         }
+    };
+
+    const onChangeTransactionType = (event: SelectChangeEvent<TransactionType>) => {
+        const selectedType = event.target.value as TransactionType;
+        setTransactionType(selectedType);
+        LocalStorageHelper.setTransactionListTransactionType(selectedType);
     };
 
     return (
@@ -79,11 +87,7 @@ let TransactionView = ({ className }: Props) => {
                                 }}
                             >
                                 <InputLabel>Transaction Type</InputLabel>
-                                <Select
-                                    value={transactionType}
-                                    label="Transaction Type"
-                                    onChange={(event) => setTransactionType(event.target.value as TransactionType)}
-                                >
+                                <Select value={transactionType} label="Transaction Type" onChange={onChangeTransactionType}>
                                     <MenuItem value={undefined}>All</MenuItem>
                                     {Object.values(TransactionType).map((type) => (
                                         <MenuItem key={type} value={type}>

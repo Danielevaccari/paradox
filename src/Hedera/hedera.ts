@@ -17,7 +17,6 @@ import {
     TopicInfo,
 } from "@hashgraph/sdk";
 import { TopicMessage, Topic, HederaNetwork, NetworkConfig } from "./types";
-import { Notifier } from "../Notifications/notifications";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 const NETWORK_CONFIGS: Record<HederaNetwork, () => NetworkConfig> = {
@@ -48,26 +47,39 @@ export class Hedera {
     private static privateKey?: PrivateKey;
 
     private static currentNetwork: HederaNetwork = LocalStorageHelper.getHederaNetwork() || "testnet";
-    private static client: Client = Hedera.initializeClient();
+    private static client: Client | null = Hedera.initializeClient();
 
     private static maxTopicMessageTxFee = 0.001; // HBAR
-    private static maxTopicMessageChunks = 10; // Max number of chunks for topic messages. 1 chunk default max size is 1024 bytes. So max topic message size is chunkAmount * 1024
+    private static maxTopicMessageChunks = 10;
 
-    private static initializeClient(): Client {
-        const config = NETWORK_CONFIGS[this.currentNetwork]?.();
+    private static initializeClient(): Client | null {
+        try {
+            const config = NETWORK_CONFIGS[this.currentNetwork]?.();
+            if (!config?.accountId || !config?.privateKey) {
+                console.error("Missing Hedera credentials in config.");
+                return null;
+            }
 
-        if (!config?.accountId || !config?.privateKey) {
-            Notifier.showError(`Missing credentials for network: ${this.currentNetwork}`);
-            throw new Error("Missing credentials");
+            this.accountId = config.accountId;
+
+            let privateKey;
+            try {
+                privateKey = PrivateKey.fromStringECDSA(config.privateKey);
+            } catch (err) {
+                console.error("Invalid private key format.", err);
+                return null;
+            }
+
+            this.privateKey = privateKey;
+            const client = config.network.setOperator(this.accountId, this.privateKey);
+            client.setDefaultMaxTransactionFee(new Hbar(1));
+            client.setDefaultMaxQueryPayment(new Hbar(1));
+
+            return client;
+        } catch (error) {
+            console.error("Failed to initialize Hedera client.", error);
+            return null;
         }
-
-        this.accountId = config.accountId;
-        this.privateKey = PrivateKey.fromStringECDSA(config.privateKey);
-
-        const client = config.network.setOperator(this.accountId, this.privateKey);
-        client.setDefaultMaxTransactionFee(new Hbar(1));
-        client.setDefaultMaxQueryPayment(new Hbar(1));
-        return client;
     }
 
     static setAccountId(newAccountId: string) {
@@ -97,27 +109,24 @@ export class Hedera {
             throw new Error("AccountId and PrivateKey must be set before updating the client.");
         }
 
-        this.client = Client.forTestnet().setOperator(this.accountId, this.privateKey);
-
-        this.client.setDefaultMaxTransactionFee(new Hbar(1));
-        this.client.setDefaultMaxQueryPayment(new Hbar(1));
+        const client = Client.forTestnet().setOperator(this.accountId, this.privateKey);
+        client.setDefaultMaxTransactionFee(new Hbar(1));
+        client.setDefaultMaxQueryPayment(new Hbar(1));
+        this.client = client;
     }
 
     static getNetworkName(): "mainnet" | "testnet" | "local" | "unknown" {
-        const network = this.client.network;
+        const network = this.client?.network;
 
         if (typeof network === "object") {
             const urls = Object.keys(network);
-
-            if (urls.some((url) => typeof url === "string" && url.includes("testnet"))) {
+            if (urls.some((url) => url.includes("testnet"))) {
                 return "testnet";
             }
-
-            if (urls.some((url) => typeof url === "string" && url.includes("mainnet"))) {
+            if (urls.some((url) => url.includes("mainnet"))) {
                 return "mainnet";
             }
-
-            if (urls.some((url) => typeof url === "string" && url.includes("localhost"))) {
+            if (urls.some((url) => url.includes("localhost"))) {
                 return "local";
             }
         }
@@ -125,19 +134,28 @@ export class Hedera {
         return "unknown";
     }
 
+    static ensureClient() {
+        if (!this.client) {
+            throw new Error("Hedera client is not initialized.");
+        }
+        return this.client;
+    }
+
     static async sendTransaction(toAccountId: AccountId | string, amount: Hbar | number) {
         if (!this.accountId) {
             throw new Error("accountId is not set");
         }
-        const tx = new TransferTransaction().addHbarTransfer(this.accountId, -amount).addHbarTransfer(toAccountId, amount);
 
-        const signedTx = await tx.execute(this.client);
+        const client = this.ensureClient();
+        const tx = new TransferTransaction().addHbarTransfer(this.accountId, -amount).addHbarTransfer(toAccountId, amount);
+        const signedTx = await tx.execute(client);
         return signedTx.transactionId;
     }
 
     static async createTopic(topicMemo?: string) {
-        const topic = await new TopicCreateTransaction({ topicMemo }).execute(this.client);
-        const receipt = await topic.getReceipt(this.client);
+        const client = this.ensureClient();
+        const topic = await new TopicCreateTransaction({ topicMemo }).execute(client);
+        const receipt = await topic.getReceipt(client);
         return receipt.topicId ?? undefined;
     }
 
@@ -145,8 +163,13 @@ export class Hedera {
         if (!this.privateKey) {
             throw new Error("privateKey is not set");
         }
-        const topic = await new TopicCreateTransaction({ topicMemo, adminKey: this.privateKey.publicKey }).execute(this.client);
-        const receipt = await topic.getReceipt(this.client);
+
+        const client = this.ensureClient();
+        const topic = await new TopicCreateTransaction({
+            topicMemo,
+            adminKey: this.privateKey.publicKey,
+        }).execute(client);
+        const receipt = await topic.getReceipt(client);
         return receipt.topicId ?? undefined;
     }
 
@@ -154,8 +177,13 @@ export class Hedera {
         if (!this.privateKey) {
             throw new Error("privateKey is not set");
         }
-        const topic = await new TopicCreateTransaction({ topicMemo, submitKey: this.privateKey.publicKey }).execute(this.client);
-        const receipt = await topic.getReceipt(this.client);
+
+        const client = this.ensureClient();
+        const topic = await new TopicCreateTransaction({
+            topicMemo,
+            submitKey: this.privateKey.publicKey,
+        }).execute(client);
+        const receipt = await topic.getReceipt(client);
         return receipt.topicId ?? undefined;
     }
 
@@ -168,12 +196,13 @@ export class Hedera {
         topicId: TopicId;
         newMemo?: string;
         newAutoRenewAccountId?: AccountId | string;
-        newExpirationTime?: Date | number | string; // Can be a Date object, timestamp, or ISO string
+        newExpirationTime?: Date | number | string;
     }) {
         if (!this.privateKey) {
             throw new Error("privateKey is not set");
         }
 
+        const client = this.ensureClient();
         let tx = new TopicUpdateTransaction().setTopicId(topicId);
 
         if (newMemo) {
@@ -183,76 +212,81 @@ export class Hedera {
             tx = tx.setAutoRenewAccountId(AccountId.fromString(newAutoRenewAccountId.toString()));
         }
         if (newExpirationTime) {
-            const timestamp = Timestamp.fromDate(newExpirationTime);
-            tx = tx.setExpirationTime(timestamp);
+            tx = tx.setExpirationTime(Timestamp.fromDate(newExpirationTime));
         }
 
-        const frozenTx = tx.freezeWith(this.client);
-
-        const signedTx = await frozenTx.sign(this.privateKey);
-        const response = await signedTx.execute(this.client);
-        const receipt = await response.getReceipt(this.client);
-
+        const signedTx = await tx.freezeWith(client).sign(this.privateKey);
+        const response = await signedTx.execute(client);
+        const receipt = await response.getReceipt(client);
         return receipt.status.toString();
     }
 
     static async deleteTopicById(topicId: TopicId | string) {
+        const client = this.ensureClient();
         const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
-        const response = await new TopicDeleteTransaction({ topicId: currentTopicId }).execute(this.client);
-        return await response.getReceipt(this.client);
+        const response = await new TopicDeleteTransaction({ topicId: currentTopicId }).execute(client);
+        return await response.getReceipt(client);
     }
 
     static async createTopicMessage(topicId: TopicId | string, message: string) {
+        const client = this.ensureClient();
         const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
+
         const tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message })
             .setMaxTransactionFee(this.maxTopicMessageTxFee)
             .setMaxChunks(this.maxTopicMessageChunks);
 
-        const response = await tx.execute(this.client);
-        return await response.getReceipt(this.client);
+        const response = await tx.execute(client);
+        return await response.getReceipt(client);
     }
 
     static async createPrivateSubmitTopic(topicMemo?: string) {
         if (!this.privateKey) {
             throw new Error("privateKey is not set");
         }
+
+        const client = this.ensureClient();
         const topic = await new TopicCreateTransaction({
             topicMemo,
             submitKey: this.privateKey.publicKey,
-        }).execute(this.client);
+        }).execute(client);
 
-        const receipt = await topic.getReceipt(this.client);
+        const receipt = await topic.getReceipt(client);
         return receipt.topicId ?? undefined;
     }
 
     static async createPrivateTopicMessage(topicId: TopicId, message: string, privateKey: PrivateKey) {
+        const client = this.ensureClient();
         const tx = new TopicMessageSubmitTransaction({ topicId, message });
         const signedTx = await tx.freeze().sign(privateKey);
-        const response = await signedTx.execute(this.client);
-        return await response.getReceipt(this.client);
+        const response = await signedTx.execute(client);
+        return await response.getReceipt(client);
     }
 
     static async subscribeTopic(topicId: TopicId) {
+        const client = this.ensureClient();
         return new TopicMessageQuery()
             .setTopicId(topicId)
             .setStartTime(0)
-            .subscribe(this.client, null, (m) => console.log(m));
+            .subscribe(client, null, (m) => console.log(m));
     }
 
     static async queryAccountBalance() {
         if (!this.accountId) {
             throw new Error("accountId is not set");
         }
-        const balance = await new AccountBalanceQuery().setAccountId(this.accountId).getCost(this.client);
+
+        const client = this.ensureClient();
+        const balance = await new AccountBalanceQuery().setAccountId(this.accountId).getCost(client);
         return balance.toTinybars();
     }
 
     static async getTopicInfo(topicId: TopicId) {
-        return await new TopicInfoQuery().setTopicId(topicId).execute(this.client);
+        return await new TopicInfoQuery().setTopicId(topicId).execute(this.ensureClient());
     }
 
     static async getAccountInfo(accountId: AccountId) {
-        return await new AccountInfoQuery().setAccountId(accountId).execute(this.client);
+        return await new AccountInfoQuery().setAccountId(accountId).execute(this.ensureClient());
     }
 
     static createConsensusTimeStamp(date: string | number | Date) {
@@ -267,25 +301,6 @@ export class Hedera {
         return atob(base64String);
     }
 
-    // static async derivePrivateKeyFromMnemonic(mnemonicWords: string) {
-    //     try {
-    //         // Create a Mnemonic object from the 24-word phrase
-    //         const mnemonic = await Mnemonic.fromString(mnemonicWords);
-
-    //         // Derive the private key using Hedera's default derivation path
-    //         const privateKey = await mnemonic.toStandardEd25519PrivateKey();
-
-    //         // Output the private key in DER format (compatible with Hedera API)
-    //         const privateKeyDer = privateKey.toStringDer();
-    //         const privateKeyRaw = privateKey.toStringRaw();
-    //         const publicKey = privateKey.publicKey.toStringDer();
-
-    //         return privateKey;
-    //     } catch (error) {
-    //         throw error;
-    //     }
-    // }
-
     static assembleChunkedMessages(messages: Array<TopicMessage>): TopicMessage[] {
         let temp = "";
         const completed: TopicMessage[] = [];
@@ -294,9 +309,7 @@ export class Hedera {
             if (message.chunk_info.number === 1) {
                 temp = "";
             }
-
             temp += this.decodeBase64ToString(message.message);
-
             if (message.chunk_info.number === message.chunk_info.total) {
                 completed.push({ ...message, message: btoa(temp) });
             }
@@ -306,7 +319,7 @@ export class Hedera {
     }
 
     static tinybarToHbar(tinybar: number) {
-        return (tinybar / 1e8).toFixed(6); // 1 HBAR = 10^8 tinybars
+        return (tinybar / 1e8).toFixed(6);
     }
 
     static transformHederaTopicInfoToGenericTopic(hederaTopic: TopicInfo): Topic {
@@ -319,7 +332,10 @@ export class Hedera {
             expirationTime: hederaTopic.expirationTime?.toString() ?? "",
             autoRenewAccount: hederaTopic.autoRenewAccountId?.toString(),
             autoRenewPeriod: Number(hederaTopic.autoRenewPeriod?.toString()),
-            submitKey: { _type: "ProtobufEncoded", key: hederaTopic.submitKey?._toProtobufKey().RSA_3072?.toString() ?? "" },
+            submitKey: {
+                _type: "ProtobufEncoded",
+                key: hederaTopic.submitKey?._toProtobufKey().RSA_3072?.toString() ?? "",
+            },
         };
     }
 

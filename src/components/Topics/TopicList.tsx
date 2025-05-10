@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { TopicId } from "@hashgraph/sdk";
 import {
     Box,
@@ -15,6 +15,7 @@ import {
     TextField,
     Tooltip,
     IconButton,
+    TablePagination,
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
@@ -33,7 +34,13 @@ type Props = {
 
 let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView, onRemoveTopicFromLocalStorage }: Props) => {
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const [updatingTopicId, setUpdatingTopicId] = React.useState<string | null>(null);
+    const [updatingTopicId, setUpdatingTopicId] = useState<string | null>(null);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
+
+    useEffect(() => {
+        setPage(0);
+    }, [searchTerm]);
 
     const handleSelectTopic = React.useCallback(
         (topic: Topic) => {
@@ -101,7 +108,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                         </TableHead>
 
                         <TableBody>
-                            {filteredTopics.map((topic) => (
+                            {filteredTopics.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((topic) => (
                                 <TableRow
                                     hover
                                     key={topic.topicId}
@@ -184,6 +191,19 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                             ))}
                         </TableBody>
                     </Table>
+
+                    <TablePagination
+                        page={page}
+                        component="div"
+                        rowsPerPage={rowsPerPage}
+                        count={filteredTopics.length}
+                        rowsPerPageOptions={[25, 50]}
+                        onPageChange={(event, newPage) => setPage(newPage)}
+                        onRowsPerPageChange={(event) => {
+                            setRowsPerPage(parseInt(event.target.value, 10));
+                            setPage(0);
+                        }}
+                    />
                 </TableContainer>
             </Box>
         </div>

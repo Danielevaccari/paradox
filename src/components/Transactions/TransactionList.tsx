@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Typography, Table, TableHead, TableRow, TableCell, TableBody, Tooltip, TablePagination, Paper, Box } from "@mui/material";
+import { Table, TableHead, TableRow, TableCell, TableBody, Tooltip, TablePagination, Paper, Box } from "@mui/material";
 import { Transaction } from "../../Hedera/types";
 import { Notifier } from "../../Notifications/notifications";
 import styled from "styled-components";
@@ -34,7 +34,7 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
         }
     }, [accountId, transactionType]);
 
-    const handleChangePage = (event: unknown, newPage: number) => {
+    const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
         setPage(newPage);
     };
 
@@ -45,47 +45,47 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
 
     const paginatedTransactions = transactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    React.useEffect(() => {
+        setPage(0);
+    }, [transactionType]);
+
     return (
         <div className={className}>
-            {transactions.length > 0 ? (
-                <Paper elevation={2} className="table-container">
-                    <Box className="table-body">
-                        <Table stickyHeader>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell></TableCell>
-                                    <TableCell>Tx ID</TableCell>
-                                    <TableCell>Amount</TableCell>
-                                    <TableCell>Txs</TableCell>
-                                    <TableCell>Type</TableCell>
-                                    <Tooltip title="E.g. Topic ID, etc">
-                                        <TableCell>Entity ID</TableCell>
-                                    </Tooltip>
-                                    <TableCell>Fee</TableCell>
-                                    <TableCell>Node</TableCell>
-                                    <TableCell>Timestamp</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {paginatedTransactions.map((tx) => (
-                                    <TransferRow key={tx.transaction_id} accountId={accountId} transaction={tx} />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Box>
-                    <TablePagination
-                        page={page}
-                        component="div"
-                        rowsPerPage={rowsPerPage}
-                        count={transactions.length}
-                        rowsPerPageOptions={[25, 50, 100]}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </Paper>
-            ) : (
-                <Typography>No transactions found</Typography>
-            )}
+            <Paper elevation={2} className="table-container">
+                <Box className="table-body">
+                    <Table stickyHeader>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell></TableCell>
+                                <TableCell>Tx ID</TableCell>
+                                <TableCell>Amount</TableCell>
+                                <TableCell>Txs</TableCell>
+                                <TableCell>Type</TableCell>
+                                <Tooltip title="E.g. Topic ID, etc">
+                                    <TableCell>Entity ID</TableCell>
+                                </Tooltip>
+                                <TableCell>Fee</TableCell>
+                                <TableCell>Node</TableCell>
+                                <TableCell>Timestamp</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {paginatedTransactions.map((tx) => (
+                                <TransferRow key={tx.transaction_id} accountId={accountId} transaction={tx} />
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Box>
+                <TablePagination
+                    page={page}
+                    component="div"
+                    rowsPerPage={rowsPerPage}
+                    count={transactions.length}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </Paper>
         </div>
     );
 };
@@ -109,10 +109,7 @@ TransactionList = styled(TransactionList)`
     }
 
     .MuiTableCell-root {
-        padding-top: 0px;
-        padding-bottom: 0px;
-        padding-left: 8px;
-        padding-right: 8px;
+        padding: 0rem 0.5rem 0rem 0.5rem;
     }
 
     .MuiTableRow-root {

@@ -31,6 +31,11 @@ let AccountView = ({ className }: Props) => {
     }, []);
 
     const handleSearchAccount = React.useCallback(() => {
+        if (!accountIdInput) {
+            Notifier.showWarning("Please enter a valid account ID.");
+            return;
+        }
+
         try {
             const id = AccountId.fromString(accountIdInput);
             setSelectedAccountId(id);

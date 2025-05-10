@@ -1,3 +1,4 @@
+import { TransactionType } from "../Hedera/enumerations";
 import { HederaNetwork } from "../Hedera/types";
 import { Notifier } from "../Notifications/notifications";
 
@@ -59,6 +60,15 @@ export class LocalStorageHelper {
 
     static setTopicMessageEditorType(editorType: string): void {
         localStorage.setItem(this.key("topicMessageEditorType"), editorType);
+    }
+
+    static getTransactionListTransactionType() {
+        const transactionType = localStorage.getItem(this.key("transactionListTransactionType")) as TransactionType;
+        return transactionType ? transactionType : TransactionType.CONSENSUSCREATETOPIC; // Default to undefined
+    }
+
+    static setTransactionListTransactionType(transactionType: TransactionType): void {
+        localStorage.setItem(this.key("transactionListTransactionType"), transactionType);
     }
 
     static exportAppDataToFile(): void {
