@@ -91,7 +91,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                             }}
                         >
                             <TableRow>
-                                <TableCell>ID</TableCell>
+                                <TableCell>Topic Id</TableCell>
                                 <TableCell>
                                     Memo
                                     <TextField
@@ -103,6 +103,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         onChange={(event) => setSearchTerm(event.target.value)}
                                     />
                                 </TableCell>
+                                <TableCell>Created at</TableCell>
                                 <TableCell align="right"> </TableCell>
                             </TableRow>
                         </TableHead>
@@ -125,7 +126,13 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
 
                                     <TableCell align="left" sx={{ py: "2px", px: "6px" }}>
                                         <Typography variant="caption" color={topic.deleted ? "crimson" : ""}>
-                                            {topic.memo ?? "Unnamed Topic"}
+                                            {topic.memo === "" ? "Unnamed Topic" : topic.memo}
+                                        </Typography>
+                                    </TableCell>
+
+                                    <TableCell align="left" sx={{ py: "2px", px: "6px" }}>
+                                        <Typography variant="caption" color={topic.deleted ? "crimson" : ""}>
+                                            {new Date(Number(topic.created_timestamp) * 1000).toLocaleString()}
                                         </Typography>
                                     </TableCell>
 

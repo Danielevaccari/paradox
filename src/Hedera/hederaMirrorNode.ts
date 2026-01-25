@@ -165,6 +165,7 @@ export class HederaMirrorNode {
             feeScheduleKey: mirrorNodeTopic.fee_schedule_key,
             autoRenewPeriod: mirrorNodeTopic.auto_renew_period,
             autoRenewAccount: mirrorNodeTopic.auto_renew_account,
+            created_timestamp: mirrorNodeTopic.created_timestamp,
             feeExemptKeyList: mirrorNodeTopic.fee_exempt_key_list,
         };
     }

@@ -72,6 +72,7 @@ type Topic = {
     autoRenewAccount?: string | null;
     autoRenewPeriod: number;
     deleted: boolean;
+    created_timestamp: string;
     adminKey?: {
         _type: "ProtobufEncoded";
         key: string;

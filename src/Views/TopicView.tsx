@@ -95,17 +95,13 @@ let TopicView = ({ className }: Props) => {
         if (memo.trim() === "") {
             return;
         }
+
         setCreatingTopic(true);
 
-        let topicId;
+        const submitKey = isPrivate ? Hedera.getPrivateKey()?.publicKey : undefined;
+        const adminKey = isAdmin ? Hedera.getPrivateKey()?.publicKey : undefined;
 
-        if (isAdmin) {
-            topicId = await Hedera.createAdminTopic(memo);
-        } else if (isPrivate) {
-            topicId = await Hedera.createPrivateTopic(memo);
-        } else {
-            topicId = await Hedera.createTopic(memo);
-        }
+        const topicId = await Hedera.createTopic(memo, adminKey, submitKey);
 
         if (!topicId) {
             setCreatingTopic(false);
@@ -137,7 +133,13 @@ let TopicView = ({ className }: Props) => {
                 return;
             }
 
-            Hedera.createTopicMessage(selectedTopic.topicId, topicMessage)
+            let privateKey = undefined;
+
+            if (selectedTopic.submitKey) {
+                privateKey = Hedera.getPrivateKey();
+            }
+
+            Hedera.createTopicMessage(selectedTopic.topicId, topicMessage, privateKey)
                 .then(() => {
                     new Promise((resolve) => setTimeout(resolve, 6000)).then(() => {
                         getTopicMessagesByTopicId(selectedTopic.topicId);

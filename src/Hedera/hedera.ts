@@ -14,9 +14,9 @@ import {
     PrivateKey,
     TopicDeleteTransaction,
     TopicUpdateTransaction,
-    TopicInfo,
+    PublicKey,
 } from "@hashgraph/sdk";
-import { TopicMessage, Topic, HederaNetwork, NetworkConfig } from "./types";
+import { TopicMessage, HederaNetwork, NetworkConfig } from "./types";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 
 const NETWORK_CONFIGS: Record<HederaNetwork, () => NetworkConfig> = {
@@ -49,8 +49,10 @@ export class Hedera {
     private static currentNetwork: HederaNetwork = LocalStorageHelper.getHederaNetwork() || "testnet";
     private static client: Client | null = Hedera.initializeClient();
 
-    private static maxTopicMessageTxFee = 0.001; // HBAR
+    private static maxTopicMessageTxFee = 0.01; // HBAR
     private static maxTopicMessageChunks = 10;
+
+    // #region Client initialization
 
     private static initializeClient(): Client | null {
         try {
@@ -74,6 +76,7 @@ export class Hedera {
             const client = config.network.setOperator(this.accountId, this.privateKey);
             client.setDefaultMaxTransactionFee(new Hbar(1));
             client.setDefaultMaxQueryPayment(new Hbar(1));
+            client.setMirrorNetwork("mainnet.mirrornode.hedera.com:443");
 
             return client;
         } catch (error) {
@@ -137,8 +140,9 @@ export class Hedera {
     static ensureClient() {
         if (!this.client) {
             throw new Error("Hedera client is not initialized.");
+        } else {
+            return this.client;
         }
-        return this.client;
     }
 
     static async sendTransaction(toAccountId: AccountId | string, amount: Hbar | number) {
@@ -152,38 +156,17 @@ export class Hedera {
         return signedTx.transactionId;
     }
 
-    static async createTopic(topicMemo?: string) {
+    static async createTopic(topicMemo?: string, submitKey?: PublicKey, adminKey?: PublicKey) {
         const client = this.ensureClient();
-        const topic = await new TopicCreateTransaction({ topicMemo }).execute(client);
-        const receipt = await topic.getReceipt(client);
-        return receipt.topicId ?? undefined;
-    }
 
-    static async createAdminTopic(topicMemo?: string) {
-        if (!this.privateKey) {
-            throw new Error("privateKey is not set");
-        }
-
-        const client = this.ensureClient();
         const topic = await new TopicCreateTransaction({
             topicMemo,
-            adminKey: this.privateKey.publicKey,
+            submitKey: submitKey,
+            adminKey: adminKey,
         }).execute(client);
-        const receipt = await topic.getReceipt(client);
-        return receipt.topicId ?? undefined;
-    }
 
-    static async createPrivateTopic(topicMemo?: string) {
-        if (!this.privateKey) {
-            throw new Error("privateKey is not set");
-        }
-
-        const client = this.ensureClient();
-        const topic = await new TopicCreateTransaction({
-            topicMemo,
-            submitKey: this.privateKey.publicKey,
-        }).execute(client);
         const receipt = await topic.getReceipt(client);
+
         return receipt.topicId ?? undefined;
     }
 
@@ -228,38 +211,22 @@ export class Hedera {
         return await response.getReceipt(client);
     }
 
-    static async createTopicMessage(topicId: TopicId | string, message: string) {
+    static async createTopicMessage(topicId: TopicId | string, message: string, privateKeyForPrivateTopic?: PrivateKey) {
         const client = this.ensureClient();
         const currentTopicId = typeof topicId === "string" ? TopicId.fromString(topicId) : topicId;
 
-        const tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message })
+        let tx = new TopicMessageSubmitTransaction({ topicId: currentTopicId, message })
             .setMaxTransactionFee(this.maxTopicMessageTxFee)
             .setMaxChunks(this.maxTopicMessageChunks);
 
-        const response = await tx.execute(client);
-        return await response.getReceipt(client);
-    }
+        tx = tx.freezeWith(client);
 
-    static async createPrivateSubmitTopic(topicMemo?: string) {
-        if (!this.privateKey) {
-            throw new Error("privateKey is not set");
+        if (privateKeyForPrivateTopic) {
+            tx = await tx.sign(privateKeyForPrivateTopic);
         }
 
-        const client = this.ensureClient();
-        const topic = await new TopicCreateTransaction({
-            topicMemo,
-            submitKey: this.privateKey.publicKey,
-        }).execute(client);
+        const response = await tx.execute(client);
 
-        const receipt = await topic.getReceipt(client);
-        return receipt.topicId ?? undefined;
-    }
-
-    static async createPrivateTopicMessage(topicId: TopicId, message: string, privateKey: PrivateKey) {
-        const client = this.ensureClient();
-        const tx = new TopicMessageSubmitTransaction({ topicId, message });
-        const signedTx = await tx.freeze().sign(privateKey);
-        const response = await signedTx.execute(client);
         return await response.getReceipt(client);
     }
 
@@ -320,23 +287,6 @@ export class Hedera {
 
     static tinybarToHbar(tinybar: number) {
         return (tinybar / 1e8).toFixed(6);
-    }
-
-    static transformHederaTopicInfoToGenericTopic(hederaTopic: TopicInfo): Topic {
-        return {
-            deleted: false,
-            memo: hederaTopic.topicMemo,
-            topicId: hederaTopic.topicId.toString(),
-            adminKey: { _type: "ProtobufEncoded", key: "" },
-            sequenceNumber: hederaTopic.sequenceNumber?.toString(),
-            expirationTime: hederaTopic.expirationTime?.toString() ?? "",
-            autoRenewAccount: hederaTopic.autoRenewAccountId?.toString(),
-            autoRenewPeriod: Number(hederaTopic.autoRenewPeriod?.toString()),
-            submitKey: {
-                _type: "ProtobufEncoded",
-                key: hederaTopic.submitKey?._toProtobufKey().RSA_3072?.toString() ?? "",
-            },
-        };
     }
 
     static getMaxTopicMessageTxFee(): number {
