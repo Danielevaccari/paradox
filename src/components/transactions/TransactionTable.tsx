@@ -72,14 +72,25 @@ export const TransactionTable = ({ transactions, accountId, network, loading, on
 
     const columns = useMemo<GridColDef<Row>[]>(
         () => [
+            // Text columns on the left, numbers grouped on the right; widths are proportional.
+            {
+                field: "time",
+                headerName: "Time",
+                type: "dateTime",
+                flex: 1.1,
+                minWidth: 150,
+                valueGetter: (_value, row) => consensusToDate(row.consensus_timestamp),
+                renderCell: ({ row }) => formatTimestamp(row.consensus_timestamp, true),
+                cellClassName: "secondary",
+            },
             {
                 field: "name",
                 headerName: "Type",
-                flex: 1,
+                flex: 1.6,
                 minWidth: 150,
                 valueGetter: (value: string) => formatTransactionType(value),
                 renderCell: ({ row, value }) => (
-                    <Box sx={{ display: "flex", alignItems: "center", height: "100%", minWidth: 0 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
                         <StatusDot ok={row.result === "SUCCESS"} />
                         <Box sx={{ minWidth: 0, lineHeight: 1.3 }}>
                             <Typography variant="body2" noWrap>
@@ -95,10 +106,18 @@ export const TransactionTable = ({ transactions, accountId, network, loading, on
                 ),
             },
             {
+                field: "entity_id",
+                headerName: "Entity",
+                flex: 0.9,
+                minWidth: 110,
+                valueGetter: (value: string | null) => value ?? "—",
+            },
+            {
                 field: "net",
                 headerName: "Amount",
                 type: "number",
-                width: 120,
+                flex: 0.9,
+                minWidth: 110,
                 renderCell: ({ value }) => (
                     <Box component="span" sx={{ color: value > 0 ? "success.main" : value < 0 ? "text.primary" : "text.secondary" }}>
                         {value > 0 ? "+" : ""}
@@ -107,30 +126,15 @@ export const TransactionTable = ({ transactions, accountId, network, loading, on
                 ),
             },
             {
-                field: "entity_id",
-                headerName: "Entity",
-                width: 130,
-                cellClassName: "mono",
-                valueGetter: (value: string | null) => value ?? "—",
-            },
-            {
                 field: "charged_tx_fee",
                 headerName: "Fee",
                 type: "number",
-                width: 110,
+                flex: 0.8,
+                minWidth: 100,
                 renderCell: ({ value }) => formatHbar(value, 6),
                 cellClassName: "secondary",
             },
-            {
-                field: "time",
-                headerName: "Time",
-                type: "dateTime",
-                width: 170,
-                valueGetter: (_value, row) => consensusToDate(row.consensus_timestamp),
-                renderCell: ({ row }) => formatTimestamp(row.consensus_timestamp, true),
-                cellClassName: "secondary",
-            },
-            { field: "transaction_id", headerName: "Transaction ID", width: 260, cellClassName: "mono" },
+            { field: "transaction_id", headerName: "Transaction ID", width: 260 },
             { field: "result", headerName: "Result", width: 140 },
         ],
         [wide],

@@ -31,9 +31,10 @@ export const TopicTable = ({ rows, loading, busyTopicId, onOpen, onExtend, onDel
             {
                 field: "id",
                 headerName: "Topic ID",
-                width: 112,
+                flex: 0.8,
+                minWidth: 110,
                 renderCell: ({ row }) => (
-                    <Typography variant="body2" className="mono" sx={{ textDecoration: row.topic?.deleted ? "line-through" : "none" }}>
+                    <Typography variant="body2" sx={{ textDecoration: row.topic?.deleted ? "line-through" : "none" }}>
                         {row.id}
                     </Typography>
                 ),
@@ -41,11 +42,11 @@ export const TopicTable = ({ rows, loading, busyTopicId, onOpen, onExtend, onDel
             {
                 field: "memo",
                 headerName: "Memo",
-                flex: 1,
+                flex: 2,
                 minWidth: 100,
                 valueGetter: (_value, row) => row.topic?.memo ?? "",
                 renderCell: ({ row }) => (
-                    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0, height: "100%" }}>
+                    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
                         {row.error ? (
                             <Tooltip title={row.error}>
                                 <Chip size="small" color="error" variant="outlined" icon={<ErrorOutlineRounded />} label="Unavailable" />
@@ -75,7 +76,8 @@ export const TopicTable = ({ rows, loading, busyTopicId, onOpen, onExtend, onDel
                 field: "created",
                 headerName: "Created",
                 type: "dateTime",
-                width: 170,
+                flex: 1,
+                minWidth: 150,
                 valueGetter: (_value, row) => consensusToDate(row.topic?.created_timestamp),
                 renderCell: ({ row }) => formatTimestamp(row.topic?.created_timestamp),
                 cellClassName: "secondary",
@@ -83,6 +85,8 @@ export const TopicTable = ({ rows, loading, busyTopicId, onOpen, onExtend, onDel
             {
                 field: "actions",
                 type: "actions",
+                align: "right",
+                headerAlign: "right",
                 width: 72,
                 getActions: ({ row }) => {
                     const isAdmin = canWrite && !row.topic?.deleted && isOperatorKey(row.topic?.admin_key, serverConfig?.publicKey);

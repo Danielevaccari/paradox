@@ -98,6 +98,8 @@ export const AppDataGrid = <R extends GridValidRowModel>({ sx, slots, ...props }
                 border: 0,
                 borderRadius: 0,
                 fontSize: "0.8125rem",
+                // Tabular figures keep ids, amounts and dates aligned without a monospace font.
+                fontVariantNumeric: "tabular-nums",
                 "--DataGrid-containerBackground": (theme) => theme.palette.background.paper,
                 "& .MuiDataGrid-toolbar": {
                     flex: "0 0 auto",
@@ -109,6 +111,7 @@ export const AppDataGrid = <R extends GridValidRowModel>({ sx, slots, ...props }
                 },
                 "& .MuiDataGrid-cell": { display: "flex", alignItems: "center" },
                 "& .MuiDataGrid-cell--textRight": { justifyContent: "flex-end" },
+                "& .MuiDataGrid-cell > .MuiBox-root, & .MuiDataGrid-cell > .MuiStack-root": { minWidth: 0, maxWidth: "100%" },
                 "& .MuiDataGrid-columnHeaderTitle": { fontWeight: 600, fontSize: "0.75rem", color: "text.secondary" },
                 "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within":
                     { outline: "none" },
