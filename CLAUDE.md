@@ -32,8 +32,10 @@ React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), 
 
 ## Conventions
 - Use MUI `sx` and theme tokens (`src/theme/theme.ts`), never hard-coded colours, so light and dark mode both work.
-- Every view must work at 375px width with no horizontal page scroll. Hide secondary table columns below `md`.
+- Every view must work down to 320px width with no horizontal page scroll. Hide secondary table columns below `md`.
+- Keep the UI compact and square (theme `borderRadius: 4`, small controls). The page never scrolls on list views: lists fill the height and only their rows scroll, using `fillCardSx`, `scrollAreaSx` and sticky table headers.
 - Load data with `useAsyncData`. Don't call setState synchronously in effects (react-hooks 7 flags it).
 - Component files export only components, so fast refresh keeps working.
 - Show user-facing messages with `notify` (notistack).
 - Git: commit in small logical steps on a feature branch. Do not push or open a PR without asking.
+- No Claude or AI attribution anywhere: no `Co-Authored-By: Claude` trailer, and no "Generated with Claude (Code)" or robot line in commits, PRs, code or docs.
