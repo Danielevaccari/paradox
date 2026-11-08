@@ -76,7 +76,7 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2, pb: 1.5, borderBottom: 1, borderColor: "divider" }}>
+            <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: 1, pb: 1, borderBottom: 1, borderColor: "divider" }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                         <Typography variant="overline" color="text.secondary">
@@ -89,12 +89,17 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
                             {topic?.memo || "Unnamed topic"}
                         </Typography>
                     </Box>
+                    <Tooltip title="Refresh">
+                        <IconButton onClick={reload} aria-label="Refresh messages">
+                            <RefreshRounded fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
                     <IconButton onClick={onClose} aria-label="Close messages">
                         <CloseRounded />
                     </IconButton>
                 </Stack>
 
-                <Stack direction="row" spacing={1} sx={{ mt: 2, alignItems: "center", flexWrap: "wrap", rowGap: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: "center", flexWrap: "wrap", rowGap: 0.5 }}>
                     <WriteButton
                         variant="contained"
                         startIcon={<AddRounded />}
@@ -107,7 +112,12 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
                         }
                         onClick={() => setComposeOpen(true)}
                     >
-                        New message
+                        <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                            New message
+                        </Box>
+                        <Box component="span" sx={{ display: { sm: "none" } }}>
+                            New
+                        </Box>
                     </WriteButton>
                     <Box sx={{ flexGrow: 1 }} />
                     <ToggleButtonGroup size="small" exclusive value={format} onChange={(_e, value) => value && setFormat(value)}>
@@ -124,17 +134,12 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
                             <AddRounded fontSize="small" />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Refresh">
-                        <IconButton size="small" onClick={reload} aria-label="Refresh messages">
-                            <RefreshRounded fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
                 </Stack>
             </Box>
 
-            {(loading || waiting) && <LinearProgress />}
+            <Box sx={{ height: 2, flexShrink: 0 }}>{(loading || waiting) && <LinearProgress sx={{ height: 2 }} />}</Box>
 
-            <Box sx={{ flexGrow: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 2, bgcolor: "background.default" }}>
+            <Box sx={{ flexGrow: 1, overflowY: "auto", px: { xs: 1, sm: 2 }, py: { xs: 1, sm: 1.5 }, bgcolor: "background.default" }}>
                 {waiting && (
                     <Alert severity="info" sx={{ mb: 2 }}>
                         Waiting for the mirror node to index your message…
@@ -148,15 +153,15 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
                         description="Messages submitted to this topic will show up here."
                     />
                 )}
-                <Stack spacing={1.5}>
+                <Stack spacing={1}>
                     {messages?.map((message) => (
                         <Paper key={message.sequenceNumber} variant="outlined" sx={{ overflow: "hidden" }}>
                             <Stack
                                 direction="row"
                                 spacing={1}
                                 sx={{
-                                    px: 1.5,
-                                    py: 0.75,
+                                    px: 1,
+                                    py: 0.5,
                                     alignItems: "center",
                                     borderBottom: 1,
                                     borderColor: "divider",
@@ -182,9 +187,10 @@ const TopicMessages = ({ topicId, topic, onClose }: Props & { topicId: string })
                                 component="pre"
                                 sx={{
                                     m: 0,
-                                    p: 1.5,
+                                    px: 1.25,
+                                    py: 1,
                                     fontSize,
-                                    lineHeight: 1.55,
+                                    lineHeight: 1.5,
                                     whiteSpace: "pre-wrap",
                                     wordBreak: "break-word",
                                     maxHeight: 480,

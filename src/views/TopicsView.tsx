@@ -7,6 +7,7 @@ import { useApp } from "../app/appContext";
 import { preferences } from "../app/preferences";
 import { ConfirmDialog } from "../components/common/ConfirmDialog";
 import { EmptyState } from "../components/common/EmptyState";
+import { fillCardSx } from "../components/common/layoutSx";
 import { PageHeader } from "../components/common/PageHeader";
 import { WriteButton } from "../components/common/WriteButton";
 import { CreateTopicDialog } from "../components/topics/CreateTopicDialog";
@@ -115,9 +116,9 @@ export const TopicsView = () => {
                 }
             />
 
-            <Card>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ p: 2, alignItems: { sm: "center" } }}>
-                    <Stack direction="row" spacing={1} sx={{ flex: 1 }}>
+            <Card sx={fillCardSx}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, p: 1, flexShrink: 0, alignItems: "center" }}>
+                    <Stack direction="row" spacing={1} sx={{ flex: { xs: "1 1 100%", sm: "0 1 340px" } }}>
                         <TextField
                             fullWidth
                             label="Add topic by ID"
@@ -131,7 +132,11 @@ export const TopicsView = () => {
                             Add
                         </Button>
                     </Stack>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 320px" }, ml: { sm: "auto" } }}
+                    >
                         <TextField
                             fullWidth
                             placeholder="Search memo or id"
@@ -154,9 +159,9 @@ export const TopicsView = () => {
                             </IconButton>
                         </Tooltip>
                     </Stack>
-                </Stack>
+                </Box>
 
-                <Box sx={{ height: 4 }}>{(loading || creatingTopicId) && <LinearProgress />}</Box>
+                <Box sx={{ height: 2, flexShrink: 0 }}>{(loading || creatingTopicId) && <LinearProgress sx={{ height: 2 }} />}</Box>
 
                 {creatingTopicId && (
                     <Alert severity="info" sx={{ mx: 2, mb: 2 }}>

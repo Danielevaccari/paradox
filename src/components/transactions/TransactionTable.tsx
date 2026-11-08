@@ -16,6 +16,7 @@ import { Fragment, useState } from "react";
 import type { Transaction } from "../../api/mirrorNode";
 import { formatHbar, formatTimestamp } from "../../utils/format";
 import { formatTransactionType } from "../../utils/transactionTypes";
+import { scrollAreaSx } from "../common/layoutSx";
 
 const hideOnMobile = { display: { xs: "none", md: "table-cell" } } as const;
 const wideOnly = { display: { xs: "none", lg: "table-cell" } } as const;
@@ -32,7 +33,7 @@ const TransactionRow = ({ transaction, accountId }: { transaction: Transaction; 
                 onClick={() => setOpen(!open)}
                 sx={{ cursor: "pointer", "& > td": { borderBottom: open ? "none" : undefined } }}
             >
-                <TableCell padding="checkbox" sx={{ pl: { xs: 0.5, md: 1 }, pr: 0 }}>
+                <TableCell padding="checkbox" sx={{ display: { xs: "none", sm: "table-cell" }, pl: 1, pr: 0 }}>
                     <IconButton size="small" aria-label={open ? "Hide transfers" : "Show transfers"}>
                         {open ? <KeyboardArrowUpRounded fontSize="small" /> : <KeyboardArrowDownRounded fontSize="small" />}
                     </IconButton>
@@ -121,11 +122,11 @@ const TransactionRow = ({ transaction, accountId }: { transaction: Transaction; 
 };
 
 export const TransactionTable = ({ transactions, accountId }: { transactions: Transaction[]; accountId: string }) => (
-    <TableContainer>
-        <Table size="small">
+    <TableContainer sx={scrollAreaSx}>
+        <Table size="small" stickyHeader>
             <TableHead>
                 <TableRow>
-                    <TableCell padding="checkbox" />
+                    <TableCell padding="checkbox" sx={{ display: { xs: "none", sm: "table-cell" } }} />
                     <TableCell>Type</TableCell>
                     <TableCell align="right">Amount</TableCell>
                     <TableCell sx={wideOnly}>Entity</TableCell>

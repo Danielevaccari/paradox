@@ -46,8 +46,8 @@ export const AccountsView = () => {
         <>
             <PageHeader title="Accounts" subtitle="Look up any Hedera account on the mirror node." />
 
-            <Card sx={{ mb: 2 }}>
-                <Stack direction="row" spacing={1} sx={{ p: 2 }}>
+            <Card sx={{ mb: 1, flexShrink: 0 }}>
+                <Stack direction="row" spacing={1} sx={{ p: 1 }}>
                     <TextField
                         fullWidth
                         label="Account ID"
@@ -61,7 +61,7 @@ export const AccountsView = () => {
                         Search
                     </Button>
                 </Stack>
-                <Box sx={{ height: 4 }}>{loading && <LinearProgress />}</Box>
+                <Box sx={{ height: 2 }}>{loading && <LinearProgress sx={{ height: 2 }} />}</Box>
             </Card>
 
             {error && <Alert severity="error">{error}</Alert>}
@@ -78,8 +78,8 @@ export const AccountsView = () => {
 
             {account && (
                 <Card>
-                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 3, flexWrap: "wrap" }}>
+                    <CardContent>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 2, flexWrap: "wrap" }}>
                             <Typography variant="h2" className="mono">
                                 {account.account}
                             </Typography>
@@ -88,7 +88,7 @@ export const AccountsView = () => {
                             )}
                             {account.deleted && <Chip size="small" color="error" label="Deleted" />}
                         </Stack>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={2}>
                             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                 <Field label="Balance">{formatHbar(account.balance?.balance)}</Field>
                             </Grid>

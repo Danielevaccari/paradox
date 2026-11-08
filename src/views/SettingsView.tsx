@@ -8,9 +8,9 @@ import { notify } from "../utils/notify";
 
 const Section = ({ title, description, children }: { title: string; description: string; children: ReactNode }) => (
     <Card>
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+        <CardContent>
             <Typography variant="h2">{title}</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, mb: 1.5 }}>
                 {description}
             </Typography>
             {children}
@@ -19,7 +19,7 @@ const Section = ({ title, description, children }: { title: string; description:
 );
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.25, sm: 2 }} sx={{ py: 1.25 }}>
+    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.25, sm: 2 }} sx={{ py: 0.75 }}>
         <Typography variant="body2" color="text.secondary" sx={{ width: { sm: 160 }, flexShrink: 0 }}>
             {label}
         </Typography>
@@ -55,7 +55,7 @@ export const SettingsView = () => {
         <>
             <PageHeader title="Settings" subtitle="Server account, appearance and saved data." />
 
-            <Stack spacing={2}>
+            <Stack spacing={1}>
                 <Section title="Hedera account" description="Transactions are signed on the server. Keys never reach the browser.">
                     {server.state === "loading" && <Typography color="text.secondary">Connecting…</Typography>}
                     {server.state === "unavailable" && (

@@ -9,7 +9,7 @@ type Props = {
 };
 
 export const EmptyState = ({ icon, title, description, action }: Props) => (
-    <Box sx={{ py: { xs: 5, md: 7 }, px: 2, textAlign: "center", color: "text.secondary" }}>
+    <Box sx={{ py: { xs: 4, md: 6 }, px: 2, textAlign: "center", color: "text.secondary" }}>
         {icon && <Box sx={{ mb: 1.5, "& svg": { fontSize: 40, opacity: 0.6 } }}>{icon}</Box>}
         <Typography variant="h3" color="text.primary">
             {title}

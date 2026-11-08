@@ -18,6 +18,7 @@ import { useState } from "react";
 import type { Topic } from "../../api/mirrorNode";
 import { useApp } from "../../app/appContext";
 import { formatTimestamp } from "../../utils/format";
+import { scrollAreaSx } from "../common/layoutSx";
 import { isOperatorKey } from "./topicKeys";
 
 export type TopicRow = { id: string; topic?: Topic; error?: string };
@@ -44,8 +45,8 @@ export const TopicTable = ({ rows, busyTopicId, onOpen, onExtend, onDelete, onRe
 
     return (
         <>
-            <TableContainer>
-                <Table size="small" sx={{ "& td, & th": { px: { xs: 1, sm: 2 } } }}>
+            <TableContainer sx={scrollAreaSx}>
+                <Table size="small" stickyHeader sx={{ "& td, & th": { px: { xs: 1, sm: 1.5 } } }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Topic ID</TableCell>
@@ -97,7 +98,14 @@ export const TopicTable = ({ rows, busyTopicId, onOpen, onExtend, onDelete, onRe
                                                     {topic?.memo || "Unnamed topic"}
                                                 </Typography>
                                             )}
-                                            {topic?.deleted && <Chip size="small" color="error" label="Deleted" />}
+                                            {topic?.deleted && (
+                                                <Chip
+                                                    size="small"
+                                                    color="error"
+                                                    label="Deleted"
+                                                    sx={{ display: { xs: "none", sm: "inline-flex" } }}
+                                                />
+                                            )}
                                             {topic?.submit_key && (
                                                 <Tooltip title="Private: needs a submit key">
                                                     <LockOutlined fontSize="small" color="action" />
@@ -163,6 +171,7 @@ export const TopicTable = ({ rows, busyTopicId, onOpen, onExtend, onDelete, onRe
             </TableContainer>
             {rows.length > ROWS_PER_PAGE_OPTIONS[0] && (
                 <TablePagination
+                    sx={{ flexShrink: 0, borderTop: 1, borderColor: "divider" }}
                     component="div"
                     count={rows.length}
                     page={currentPage}

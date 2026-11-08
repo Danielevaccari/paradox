@@ -1,27 +1,50 @@
-import { MenuRounded } from "@mui/icons-material";
-import { AppBar, Box, Drawer, IconButton, Toolbar } from "@mui/material";
+import { AutoAwesomeRounded, MenuRounded } from "@mui/icons-material";
+import { AppBar, Box, Drawer, IconButton, Toolbar, Tooltip } from "@mui/material";
 import { useState, type ReactNode } from "react";
+import { useApp } from "../../app/appContext";
+import { ChatDrawer } from "../chat/ChatDrawer";
 import { Logo } from "./Logo";
 import { NavContent } from "./NavContent";
 
-export const DRAWER_WIDTH = 232;
+export const DRAWER_WIDTH = 208;
+const APP_BAR_HEIGHT = 48;
 
+/**
+ * Full-height shell: the page itself never scrolls on list views. Views fill the space and scroll
+ * their own rows (tables use sticky headers); content pages scroll inside <main>.
+ */
 export const AppShell = ({ children }: { children: ReactNode }) => {
+    const { serverConfig } = useApp();
+    const chatEnabled = Boolean(serverConfig?.features.chat);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
+
+    const openChat = () => {
+        setMobileOpen(false);
+        setChatOpen(true);
+    };
 
     return (
-        <Box sx={{ display: "flex", minHeight: "100dvh" }}>
+        <Box sx={{ display: "flex", height: "100dvh", overflow: "hidden" }}>
             <AppBar
                 position="fixed"
                 color="inherit"
                 elevation={0}
                 sx={{ display: { md: "none" }, borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}
             >
-                <Toolbar sx={{ gap: 1 }}>
-                    <IconButton edge="start" onClick={() => setMobileOpen(true)} aria-label="Open menu">
+                <Toolbar variant="dense" disableGutters sx={{ minHeight: APP_BAR_HEIGHT, px: 0.5, gap: 0.5 }}>
+                    <IconButton onClick={() => setMobileOpen(true)} aria-label="Open menu" size="medium">
                         <MenuRounded />
                     </IconButton>
                     <Logo />
+                    <Box sx={{ flexGrow: 1 }} />
+                    {chatEnabled && (
+                        <Tooltip title="Ask AI">
+                            <IconButton color="primary" onClick={openChat} aria-label="Open assistant" size="medium">
+                                <AutoAwesomeRounded />
+                            </IconButton>
+                        </Tooltip>
+                    )}
                 </Toolbar>
             </AppBar>
 
@@ -33,7 +56,7 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
                     ModalProps={{ keepMounted: true }}
                     sx={{ display: { xs: "block", md: "none" }, "& .MuiDrawer-paper": { width: DRAWER_WIDTH } }}
                 >
-                    <NavContent onNavigate={() => setMobileOpen(false)} />
+                    <NavContent onNavigate={() => setMobileOpen(false)} onOpenChat={chatEnabled ? openChat : undefined} />
                 </Drawer>
                 <Drawer
                     variant="permanent"
@@ -43,23 +66,29 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
                         "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box", borderColor: "divider" },
                     }}
                 >
-                    <NavContent />
+                    <NavContent onOpenChat={chatEnabled ? openChat : undefined} />
                 </Drawer>
             </Box>
 
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    minWidth: 0,
-                    px: { xs: 2, sm: 3, lg: 4 },
-                    pt: { xs: 10, md: 4 },
-                    pb: 12,
-                    maxWidth: 1400,
-                }}
-            >
-                {children}
+            <Box component="main" sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+                <Box sx={{ display: { md: "none" }, height: APP_BAR_HEIGHT, flexShrink: 0 }} />
+                <Box
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        width: "100%",
+                        maxWidth: 1600,
+                        px: { xs: 1, sm: 2, lg: 3 },
+                        py: { xs: 1, sm: 2 },
+                    }}
+                >
+                    {children}
+                </Box>
             </Box>
+
+            {chatEnabled && <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />}
         </Box>
     );
 };

@@ -7,20 +7,23 @@ type Props = {
     actions?: ReactNode;
 };
 
+/** One compact row: title (with an optional subtitle, hidden on phones) and actions on the right. */
 export const PageHeader = ({ title, subtitle, actions }: Props) => (
     <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={{ xs: 1.5, sm: 2 }}
-        sx={{ alignItems: { xs: "stretch", sm: "flex-end" }, justifyContent: "space-between", mb: { xs: 2, md: 3 } }}
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: "center", justifyContent: "space-between", mb: { xs: 1, sm: 1.5 }, flexShrink: 0 }}
     >
         <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h1">{title}</Typography>
+            <Typography variant="h1" noWrap>
+                {title}
+            </Typography>
             {subtitle && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
                     {subtitle}
                 </Typography>
             )}
         </Box>
-        {actions && <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", flexShrink: 0 }}>{actions}</Box>}
+        {actions && <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>{actions}</Box>}
     </Stack>
 );
