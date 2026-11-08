@@ -1,4 +1,4 @@
-import { TopicId } from "@hashgraph/sdk";
+import { TopicId } from "@hiero-ledger/sdk";
 import * as React from "react";
 import {
     Box,
@@ -18,7 +18,7 @@ import { TopicMessagesList } from "../components/Topics/TopicMessagesList";
 import { TopicMessage, Topic } from "../Hedera/types";
 import { Hedera } from "../Hedera/hedera";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 import { TopicList } from "../components/Topics/TopicList";
 import { Notifier } from "../Notifications/notifications";
 import { HederaMirrorNode } from "../Hedera/hederaMirrorNode";
@@ -27,7 +27,10 @@ type Props = {
     className?: string;
 };
 
-let TopicView = ({ className }: Props) => {
+const loadStoredTopics = () =>
+    Promise.all(LocalStorageHelper.getStoredTopicIds().map((savedTopicId) => HederaMirrorNode.getTopicInfoById(TopicId.fromString(savedTopicId))));
+
+const TopicViewBase = ({ className }: Props) => {
     const [memo, setMemo] = React.useState<string>("");
     const [isAdmin, setIsAdmin] = React.useState(true);
     const [isPrivate, setIsPrivate] = React.useState(true);
@@ -151,16 +154,7 @@ let TopicView = ({ className }: Props) => {
     );
 
     const fetchTopics = React.useCallback(async () => {
-        const topics = await Promise.all(
-            LocalStorageHelper.getStoredTopicIds().map(async (savedTopicId) => {
-                const topicId = TopicId.fromString(savedTopicId);
-                const topic = await HederaMirrorNode.getTopicInfoById(topicId);
-
-                return topic;
-            }),
-        );
-
-        setTopics(topics);
+        setTopics(await loadStoredTopics());
     }, []);
 
     const refresh = React.useCallback(() => {
@@ -192,8 +186,7 @@ let TopicView = ({ className }: Props) => {
     }, [topics]);
 
     React.useEffect(() => {
-        // Effect for initial fetch
-        fetchTopics();
+        loadStoredTopics().then(setTopics).catch(Notifier.showError);
     }, [fetchTopics]);
 
     return (
@@ -202,7 +195,7 @@ let TopicView = ({ className }: Props) => {
                 <div className="header">
                     {/* Topic Controls */}
                     <Paper sx={{ p: "1rem" }}>
-                        <Grid container spacing={2} alignItems="center">
+                        <Grid container spacing={2} sx={{ alignItems: "center" }}>
                             {/* ID Input and Fetch Button Group */}
                             <Grid>
                                 <Box
@@ -211,7 +204,7 @@ let TopicView = ({ className }: Props) => {
                                         p: "1rem",
                                     })}
                                 >
-                                    <Grid container spacing={2} alignItems="center">
+                                    <Grid container spacing={2} sx={{ alignItems: "center" }}>
                                         <Grid>
                                             <TextField
                                                 size="small"
@@ -311,7 +304,7 @@ let TopicView = ({ className }: Props) => {
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid>
                             <Tooltip title="Only admin can delete Topics" arrow>
-                                <Box display="flex" alignItems="center">
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
                                     <Switch color="success" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
                                     <Typography variant="body2" sx={{ ml: 1 }}>
                                         Admin
@@ -321,7 +314,7 @@ let TopicView = ({ className }: Props) => {
                         </Grid>
                         <Grid>
                             <Tooltip title="Only specified accounts can send Topic messages into private Topics" arrow>
-                                <Box display="flex" alignItems="center">
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
                                     <Switch color="success" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
 
                                     <Typography variant="body2" sx={{ ml: 1 }}>
@@ -358,7 +351,7 @@ let TopicView = ({ className }: Props) => {
     );
 };
 
-TopicView = styled(TopicView)`
+const TopicView = styled(TopicViewBase)`
     width: 100%;
     height: 100%;
     display: flex;

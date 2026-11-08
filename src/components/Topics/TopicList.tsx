@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { TopicId } from "@hashgraph/sdk";
+import React, { useState, useMemo } from "react";
+import { TopicId } from "@hiero-ledger/sdk";
 import {
     Box,
     Button,
@@ -19,9 +19,9 @@ import {
 } from "@mui/material";
 import { Hedera } from "../../Hedera/hedera";
 import { Notifier } from "../../Notifications/notifications";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 import { Topic } from "../../Hedera/types";
-import { DeleteOutline, PunchClock } from "@mui/icons-material";
+import { DeleteOutlined, PunchClock } from "@mui/icons-material";
 
 type Props = {
     className?: string;
@@ -32,15 +32,11 @@ type Props = {
     onRemoveTopicFromLocalStorage: (topicId: string) => void;
 };
 
-let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView, onRemoveTopicFromLocalStorage }: Props) => {
+const TopicListBase = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopicView, onRemoveTopicFromLocalStorage }: Props) => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [updatingTopicId, setUpdatingTopicId] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(25);
-
-    useEffect(() => {
-        setPage(0);
-    }, [searchTerm]);
 
     const handleSelectTopic = React.useCallback(
         (topic: Topic) => {
@@ -100,7 +96,10 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                         variant="standard"
                                         value={searchTerm}
                                         placeholder="search"
-                                        onChange={(event) => setSearchTerm(event.target.value)}
+                                        onChange={(event) => {
+                                            setSearchTerm(event.target.value);
+                                            setPage(0);
+                                        }}
                                     />
                                 </TableCell>
                                 <TableCell>Created at</TableCell>
@@ -149,7 +148,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                                                             handleDeleteTopic(topic.topicId);
                                                         }}
                                                     >
-                                                        <DeleteOutline fontSize="small" />
+                                                        <DeleteOutlined fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
                                             )}
@@ -205,7 +204,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
                         rowsPerPage={rowsPerPage}
                         count={filteredTopics.length}
                         rowsPerPageOptions={[25, 50]}
-                        onPageChange={(event, newPage) => setPage(newPage)}
+                        onPageChange={(_event, newPage) => setPage(newPage)}
                         onRowsPerPageChange={(event) => {
                             setRowsPerPage(parseInt(event.target.value, 10));
                             setPage(0);
@@ -217,7 +216,7 @@ let TopicList = ({ className, topics, onSelectTopic, onDeleteTopic, refreshTopic
     );
 };
 
-TopicList = styled(TopicList)`
+const TopicList = styled(TopicListBase)`
     width: 100%;
     height: 100%;
 

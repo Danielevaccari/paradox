@@ -2,8 +2,8 @@ import * as React from "react";
 import { Table, TableHead, TableRow, TableCell, TableBody, Tooltip, TablePagination, Paper, Box } from "@mui/material";
 import { Transaction } from "../../Hedera/types";
 import { Notifier } from "../../Notifications/notifications";
-import styled from "styled-components";
-import { AccountId } from "@hashgraph/sdk";
+import { styled } from "@mui/material/styles";
+import { AccountId } from "@hiero-ledger/sdk";
 import { TransferRow } from "./TransferRow";
 import { HederaMirrorNode } from "../../Hedera/hederaMirrorNode";
 import { TransactionType } from "../../Hedera/enumerations";
@@ -14,7 +14,7 @@ type Props = {
     transactionType?: TransactionType;
 };
 
-let TransactionList = ({ className, accountId, transactionType }: Props) => {
+const TransactionListBase = ({ className, accountId, transactionType }: Props) => {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [transactions, setTransactions] = React.useState<Array<Transaction>>([]);
@@ -34,7 +34,7 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
         }
     }, [accountId, transactionType]);
 
-    const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    const handleChangePage = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
         setPage(newPage);
     };
 
@@ -44,10 +44,6 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
     };
 
     const paginatedTransactions = transactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-    React.useEffect(() => {
-        setPage(0);
-    }, [transactionType]);
 
     return (
         <div className={className}>
@@ -90,7 +86,7 @@ let TransactionList = ({ className, accountId, transactionType }: Props) => {
     );
 };
 
-TransactionList = styled(TransactionList)`
+const TransactionList = styled(TransactionListBase)`
     width: 100%;
     height: 100%;
     display: flex;

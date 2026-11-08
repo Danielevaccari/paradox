@@ -20,7 +20,7 @@ import { TopicMessage, Topic } from "../../Hedera/types";
 import React, { useState } from "react";
 import { Hedera } from "../../Hedera/hedera";
 import { SupportedLanguages } from "../../Enumerations/enumerations";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 import { formatConsensusTime } from "../../Utility/date";
 import { Notifier } from "../../Notifications/notifications";
 import Editor from "@monaco-editor/react";
@@ -36,7 +36,7 @@ type Props = {
     onCreateTopicMessage: (message: string) => void;
 };
 
-let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage }: Props) => {
+const TopicMessagesListBase = ({ className, topic, topicMessages, onCreateTopicMessage }: Props) => {
     const [byteSize, setByteSize] = useState(0);
     const [textEditorIsOpen, setTextEditorIsOpen] = React.useState(false);
     const [textEditorValue, setTextEditorValue] = React.useState<string>("");
@@ -280,7 +280,7 @@ let TopicMessagesList = ({ className, topic, topicMessages, onCreateTopicMessage
     );
 };
 
-TopicMessagesList = styled(TopicMessagesList)`
+const TopicMessagesList = styled(TopicMessagesListBase)`
     height: 100%;
     display: flex;
     flex-direction: column;

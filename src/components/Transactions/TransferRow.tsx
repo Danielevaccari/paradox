@@ -6,7 +6,7 @@ import { Hedera } from "../../Hedera/hedera";
 import { formatDateToDDMMYYYYhhmmss } from "../../Utility/date";
 import { Transaction } from "../../Hedera/types";
 import { SuccessOrFail } from "../../Hedera/enumerations";
-import { AccountId } from "@hashgraph/sdk";
+import { AccountId } from "@hiero-ledger/sdk";
 
 type Props = {
     accountId: AccountId | string;
@@ -58,11 +58,7 @@ const TransferRow = ({ transaction, accountId }: Props) => {
                                 {transaction.transfers?.map((transfer, index) => (
                                     <Box
                                         key={index}
-                                        display="flex"
-                                        justifyContent="space-between"
-                                        borderBottom={`1px solid ${theme.palette.divider}`}
-                                        p="0rem 12rem 0rem 6rem"
-                                        py={0}
+                                        sx={{ display: "flex", justifyContent: "space-between", borderBottom: 1, borderColor: "divider", px: { xs: 2, md: 12 } }}
                                     >
                                         <Typography variant="body2" color="text.secondary">
                                             {transfer.account}

@@ -1,14 +1,14 @@
 import * as React from "react";
 import { Typography, Paper, Grid, TextField, Button, Divider, Box } from "@mui/material";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 import { Hedera } from "../Hedera/hedera";
-import { AccountId, AccountInfo } from "@hashgraph/sdk";
+import { AccountId, AccountInfo } from "@hiero-ledger/sdk";
 import { Notifier } from "../Notifications/notifications";
 import { formatConsensusTime } from "../Utility/date";
 
 type Props = { className?: string };
 
-let AccountView = ({ className }: Props) => {
+const AccountViewBase = ({ className }: Props) => {
     const [loading, setLoading] = React.useState(false);
     const [accounts, setAccounts] = React.useState<Array<AccountInfo>>([]);
     const [accountIdInput, setAccountIdInput] = React.useState(Hedera.getAccountId());
@@ -57,7 +57,7 @@ let AccountView = ({ className }: Props) => {
             <Box sx={{ flexShrink: 0 }}>
                 {/* Search Area */}
                 <Paper elevation={3} sx={{ p: "1rem", mb: "1rem" }}>
-                    <Grid container spacing={2} alignItems="center">
+                    <Grid container spacing={2} sx={{ alignItems: "center" }}>
                         <Grid>
                             <TextField
                                 fullWidth
@@ -87,10 +87,7 @@ let AccountView = ({ className }: Props) => {
                         <Grid
                             container
                             spacing={2}
-                            display="flex"
-                            alignItems="center"
-                            p="0rem 1rem 0rem 1rem"
-                            justifyContent="space-between"
+                            sx={{ alignItems: "center", px: 2, justifyContent: "space-between" }}
                         >
                             <Grid>
                                 <Box>
@@ -157,7 +154,7 @@ let AccountView = ({ className }: Props) => {
     );
 };
 
-AccountView = styled(AccountView)`
+const AccountView = styled(AccountViewBase)`
     display: flex;
     flex-direction: column;
     height: 100%;

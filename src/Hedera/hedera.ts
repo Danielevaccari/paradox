@@ -15,7 +15,7 @@ import {
     TopicDeleteTransaction,
     TopicUpdateTransaction,
     PublicKey,
-} from "@hashgraph/sdk";
+} from "@hiero-ledger/sdk";
 import { TopicMessage, HederaNetwork, NetworkConfig } from "./types";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";
 

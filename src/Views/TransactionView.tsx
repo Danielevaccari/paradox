@@ -15,8 +15,8 @@ import {
     MenuItem,
     SelectChangeEvent,
 } from "@mui/material";
-import styled from "styled-components";
-import { AccountId } from "@hashgraph/sdk";
+import { styled } from "@mui/material/styles";
+import { AccountId } from "@hiero-ledger/sdk";
 import { Hedera } from "../Hedera/hedera";
 import { Notifier } from "../Notifications/notifications";
 import { TransactionList } from "../components/Transactions/TransactionList";
@@ -28,7 +28,7 @@ type Props = {
     className?: string;
 };
 
-let TransactionView = ({ className }: Props) => {
+const TransactionViewBase = ({ className }: Props) => {
     const [toAccountId, setToAccountId] = React.useState<string>("");
     const [transferAmount, setTransferAmount] = React.useState<number | null>(null);
     const [sendTransactionDialogIsOpen, setSendTransactionDialogIsOpen] = React.useState(false);
@@ -63,7 +63,7 @@ let TransactionView = ({ className }: Props) => {
         <div className={className}>
             <Box sx={{ display: "flex", height: "10%" }}>
                 <Paper elevation={3} sx={{ p: "1rem", width: "100%" }}>
-                    <Grid container spacing={2} alignItems="center" sx={{ display: "flex" }}>
+                    <Grid container spacing={2} sx={{ alignItems: "center" }}>
                         <Grid>
                             <TextField
                                 fullWidth
@@ -122,7 +122,7 @@ let TransactionView = ({ className }: Props) => {
             >
                 <DialogTitle>Send New Transaction</DialogTitle>
                 <DialogContent>
-                    <Grid container spacing={2} p="1rem">
+                    <Grid container spacing={2} sx={{ p: 2 }}>
                         <Grid sx={{ flex: 1 }}>
                             <TextField
                                 disabled
@@ -184,14 +184,14 @@ let TransactionView = ({ className }: Props) => {
 
             {accountIdForTransactionQuery && (
                 <Box sx={{ height: "90%", overflow: "auto" }}>
-                    <TransactionList accountId={accountIdForTransactionQuery} transactionType={transactionType} />
+                    <TransactionList key={`${accountIdForTransactionQuery}-${transactionType}`} accountId={accountIdForTransactionQuery} transactionType={transactionType} />
                 </Box>
             )}
         </div>
     );
 };
 
-TransactionView = styled(TransactionView)`
+const TransactionView = styled(TransactionViewBase)`
     display: flex;
     flex-direction: column;
     height: 100%;

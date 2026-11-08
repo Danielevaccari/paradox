@@ -1,12 +1,12 @@
 import * as React from "react";
-import { Box, Typography, Paper, Grid, TextField, Button } from "@mui/material";
-import styled from "styled-components";
+import { Box, Typography, Paper, Stack, TextField, Button } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { Hedera } from "../Hedera/hedera";
 import { Notifier } from "../Notifications/notifications";
 
 type Props = { className?: string };
 
-let ConfigurationView = ({ className }: Props) => {
+const ConfigurationViewBase = ({ className }: Props) => {
     const [privateKey, setPrivateKey] = React.useState("");
     const [accountId, setAccountId] = React.useState(Hedera.getAccountId());
     const [maxTopicMessageTxFee, setMaxTxFee] = React.useState(Hedera.getMaxTopicMessageTxFee());
@@ -43,8 +43,8 @@ let ConfigurationView = ({ className }: Props) => {
                     <Typography variant="h5" gutterBottom>
                         Hedera account settings
                     </Typography>
-                    <Grid container spacing={2} direction="column">
-                        <Grid>
+                    <Stack spacing={2}>
+                        <Box>
                             <TextField
                                 fullWidth
                                 variant="outlined"
@@ -52,9 +52,9 @@ let ConfigurationView = ({ className }: Props) => {
                                 value={accountId}
                                 onChange={(e) => setAccountId(e.target.value)}
                             />
-                        </Grid>
+                        </Box>
 
-                        <Grid>
+                        <Box>
                             <TextField
                                 fullWidth
                                 variant="outlined"
@@ -62,14 +62,14 @@ let ConfigurationView = ({ className }: Props) => {
                                 value={privateKey}
                                 onChange={(e) => setPrivateKey(e.target.value)}
                             />
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Stack>
 
                     <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
                         Topic messages
                     </Typography>
-                    <Grid container spacing={2} direction="column">
-                        <Grid>
+                    <Stack spacing={2}>
+                        <Box>
                             <TextField
                                 fullWidth
                                 type="number"
@@ -78,9 +78,9 @@ let ConfigurationView = ({ className }: Props) => {
                                 value={maxTopicMessageTxFee}
                                 onChange={(e) => setMaxTxFee(Number(e.target.value))}
                             />
-                        </Grid>
+                        </Box>
 
-                        <Grid>
+                        <Box>
                             <TextField
                                 fullWidth
                                 type="number"
@@ -89,21 +89,21 @@ let ConfigurationView = ({ className }: Props) => {
                                 value={maxTopicMessageChunks}
                                 onChange={(e) => setMaxChunks(Number(e.target.value))}
                             />
-                        </Grid>
+                        </Box>
 
-                        <Grid>
+                        <Box>
                             <Button variant="contained" color="primary" onClick={handleSave} disabled={!somethingHasChanged}>
                                 Save
                             </Button>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Stack>
                 </Paper>
             </Box>
         </div>
     );
 };
 
-ConfigurationView = styled(ConfigurationView)`
+const ConfigurationView = styled(ConfigurationViewBase)`
     height: 100%;
 `;
 

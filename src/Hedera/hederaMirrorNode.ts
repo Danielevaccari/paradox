@@ -1,4 +1,4 @@
-import { TopicId } from "@hashgraph/sdk";
+import { TopicId } from "@hiero-ledger/sdk";
 import { Notifier } from "../Notifications/notifications";
 import { DataStructure, TopicMessage, MirrorNodeTopic, Topic, Transaction } from "./types";
 import { LocalStorageHelper } from "../LocalStorage/localStorageHelper";

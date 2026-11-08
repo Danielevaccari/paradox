@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router";
 import { TransactionView } from "../Views/TransactionView";
 import { ConfigurationView } from "../Views/ConfigurationView";
 import { AccountView } from "../Views/AccountView";

@@ -1,5 +1,5 @@
 import { styled, useTheme } from "@mui/material/styles";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import {
     Box,
     Drawer,
@@ -111,7 +111,7 @@ const AppNavigationDrawer = () => {
                 </Select>
 
                 {process.env.NODE_ENV === "development" && (
-                    <Typography variant="caption" color="orange" fontWeight="bold">
+                    <Typography variant="caption" color="warning" sx={{ fontWeight: "bold" }}>
                         Debug Build
                     </Typography>
                 )}
