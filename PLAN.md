@@ -1,5 +1,7 @@
 # Paradox rework: plan
 
+> **Status: implemented** on branch `paradox-rework`. Deviations from the plan are marked *(changed)*.
+
 Branch: `paradox-rework`. Each step gets its own commit. Nothing is pushed.
 
 ## Done so far
@@ -26,7 +28,7 @@ New scripts: `lint`, `typecheck`, `format`. `build` runs `tsc` first. Lint, type
 - Theme: rounded corners (currently 0), consistent spacing scale, Inter or system font, and proper dark and light palettes. The dark-mode override that recolours all Typography goes away. Follows the OS colour preference until the user toggles it.
 - Sidebar becomes a temporary drawer with an app bar and menu button below `md`. The topic-messages drawer goes full width on phones.
 - Views use one shared page header and card pattern instead of ad-hoc Paper and Grid. Tables scroll horizontally, and Transactions hides minor columns on small screens.
-- Network shown as a chip, a clear "testnet" badge and empty or loading states.
+- Network shown as a chip, a clear "testnet" badge and empty or loading states. Other networks stay browsable read-only.
 
 ## 3. Bugs and structure found
 1. **Critical:** private keys, including mainnet, ship in the public JS bundle (`VITE_*`). See §4.
@@ -50,11 +52,11 @@ New scripts: `lint`, `typecheck`, `format`. `build` runs `tsc` first. Lint, type
 - **Testnet only** by default. Mainnet is refused unless the server sets `HEDERA_ALLOW_MAINNET=true`. The network selector only offers what the server allows.
 - Abuse guards on a public demo: message size cap, per-call max fee, a simple rate limit, and HBAR transfer disabled unless enabled server-side.
 - `.env.example` lists variable names only. The `.env` file was never committed (confirmed). **You still need to rotate the exposed keys** and delete the old `VITE_*` vars in Netlify.
-- Local dev uses `netlify dev`, which serves Vite and the functions together.
+- Local dev: `npm run dev` serves the functions through a small Vite plugin *(changed: no netlify-cli needed)*.
 
 ## 5. Chatbot design
 - A chat panel (a floating button that opens a drawer, full screen on phones) streams replies from `netlify/functions/chat`.
-- The function runs the Anthropic SDK tool loop server-side. `ANTHROPIC_API_KEY` stays server-only. Model comes from env `CLAUDE_MODEL`, default `claude-sonnet-5-5` (cheaper for a public demo; can be switched to `claude-opus-5-5`).
+- The function runs the Anthropic SDK tool loop server-side. `ANTHROPIC_API_KEY` stays server-only. Model comes from env `CLAUDE_MODEL`, default `claude-opus-5-5` *(changed: the latest model, as the brief asked; set a spend limit on the key)*.
 - **Tool sources behind one interface** (`ToolProvider { listTools(); callTool(name, args) }`):
   - `HederaAgentKitProvider` uses the in-process `@hashgraph/hedera-agent-kit` consensus tools: create topic, submit message and query topic messages, scoped to testnet and the server account.
   - `McpToolProvider` (later) connects to a remote MCP server over Streamable HTTP, such as Daniele's C# traceability server, configured via `MCP_SERVERS` env. Tool names get a namespace per provider.
