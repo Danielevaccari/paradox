@@ -19,6 +19,35 @@ export const formatTimestamp = (timestamp: string | null | undefined, withSecond
     return (withSeconds ? dateTimeSecondsFormat : dateTimeFormat).format(date);
 };
 
+/** "just now", "5 min ago", "3 h ago", "2 d ago", otherwise the date. */
+export const formatRelative = (timestamp: string | null | undefined) => {
+    const date = consensusToDate(timestamp);
+    if (!date) {
+        return "—";
+    }
+    const seconds = Math.max(0, (Date.now() - date.getTime()) / 1000);
+    if (seconds < 45) {
+        return "just now";
+    }
+    if (seconds < 3600) {
+        return `${Math.round(seconds / 60)} min ago`;
+    }
+    if (seconds < 86400) {
+        return `${Math.round(seconds / 3600)} h ago`;
+    }
+    if (seconds < 86400 * 30) {
+        return `${Math.round(seconds / 86400)} d ago`;
+    }
+    return dateFormat.format(date);
+};
+
+const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+
+export const formatDate = (timestamp: string | null | undefined) => {
+    const date = consensusToDate(timestamp);
+    return date ? dateFormat.format(date) : "—";
+};
+
 export const formatHbar = (tinybars: number | null | undefined, fractionDigits = 4) => {
     if (tinybars === null || tinybars === undefined) {
         return "—";
@@ -54,3 +83,6 @@ export const prettyJson = (text: string) => {
 
 export const errorMessage = (error: unknown) =>
     error instanceof Error ? error.message : typeof error === "string" ? error : "Unexpected error";
+
+/** "≈ 0.5 ℏ" or "unknown" when there is no estimate. */
+export const formatFee = (feeHbar: number | null) => (feeHbar === null ? "unknown" : `≈ ${feeHbar} ${HBAR_SYMBOL}`);

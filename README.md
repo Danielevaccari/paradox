@@ -16,13 +16,14 @@ Create Hedera topics, submit and read messages, look up accounts and browse tran
 
 ## Features
 
-- **Topics:** create public or private (submit-key) topics, renew and delete them, and keep a per-network list of topics you follow.
-- **Messages:** compose JSON, YAML, XML or text in a Monaco editor (with a byte counter). Messages larger than one chunk are split across up to 20 chunks and reassembled, with correct UTF-8, when read back.
-- **Data grids:** topics and transactions use [MUI X Data Grid](https://mui.com/x/react-data-grid/) (MIT), with virtualized rows, sorting, quick search, column filters, a column picker and CSV export. Only the rows scroll; the header and toolbar stay put.
+- **Topics at a glance:** a list with each topic's message count and last activity, and a detail pane with the id (copy and HashScan link), access (public or private), key ownership, auto-renew and live-updating messages (refreshed every 10 s). Topics have their own URLs, such as `/topics/0.0.12345`.
+- **Messages:** compose JSON, YAML, XML or text (Monaco editor on desktop, plain text on phones, with a byte counter). Messages larger than one chunk are split across up to 20 chunks and reassembled, with correct UTF-8, when read back. Search, pretty or raw view, and copy for every message.
+- **Free reads, asked-for writes:** everything you read comes from the free Hedera mirror node. Anything that costs HBAR (create, renew or delete a topic, submit a message, send HBAR) first shows the network, the paying account and the typical fee, and only runs after you accept.
+- **AI assistant:** chat with Claude, which reads Hedera for free and proposes paid actions as approval cards. Replies stream live, with a chip for each tool call.
+- **Data grids:** topics and transactions use [MUI X Data Grid](https://mui.com/x/react-data-grid/) (MIT), with virtualized rows, sorting, search and CSV export. Only the rows scroll.
 - **Accounts and transactions:** balance, staking and expiry details, and transaction history with readable types, a details dialog (every transfer, plus a HashScan link) and "load older" paging.
-- **AI assistant:** chat with Claude, which creates topics, submits messages and queries Hedera through tool calls. Replies stream live, with a chip for each tool call.
 - **Any network, safely:** browse mainnet, testnet or previewnet read-only. Writes only happen on the network the server is configured for, which is testnet by default.
-- **Polished UI:** light and dark mode (follows the OS), responsive down to 375px phones, and keyboard-friendly dialogs.
+- **Minimal, responsive design:** flat and quiet, light and dark (follows the OS), using the full screen, from wide desktops down to 320px phones.
 
 ## Architecture
 
@@ -32,7 +33,8 @@ Browser (React 19 · MUI 9 · Vite 8)          ← holds no keys
   └─ writes / chat ──────► Netlify Functions /api/*
                              ├─ GET  /api/config          network, operator account, enabled features
                              ├─ POST /api/hedera/:action  create · submit · renew · delete topic, transfer
-                             └─ POST /api/chat            Claude tool loop, streamed as NDJSON
+                             ├─ POST /api/chat            Claude tool loop, streamed as NDJSON
+                             └─ POST /api/chat/execute    runs one paid chatbot action after the user accepted it
                                     └─ ToolRegistry
                                          ├─ HederaAgentKitProvider   official Hedera Agent Kit tools, in-process
                                          └─ McpToolProvider × n      any remote MCP server (Streamable HTTP)
@@ -41,6 +43,10 @@ Browser (React 19 · MUI 9 · Vite 8)          ← holds no keys
 ### Server-side signing
 
 The Hedera private key and the Anthropic API key exist only as server environment variables. Nothing secret is ever shipped to the browser, which needs no Hedera SDK at all. Every endpoint validates input with zod, rejects cross-origin requests, rate-limits per IP and caps request sizes. Mainnet signing is refused unless `HEDERA_ALLOW_MAINNET=true`.
+
+### Free reads, accepted writes
+
+The app never pays for a read: the Hedera client's query payment cap is zero and all reads go to the mirror node. Paid actions are gated in the UI by one shared prompt, and in the chatbot by approval cards: the chat loop does not run paid tools itself, it hands them to you and only `/api/chat/execute` runs them, after you accept.
 
 ### The MCP-ready chatbot
 
@@ -51,11 +57,12 @@ interface ToolProvider {
     id: string; // tools are exposed to Claude as `<id>__<tool>`
     listTools(): Promise<Tool[]>;
     callTool(name: string, input: unknown): Promise<string>;
+    approval(name: string, input: Record<string, unknown>): { label: string; feeHbar: number | null } | null; // non-null = needs user approval
 }
 ```
 
-- **`HederaAgentKitProvider`** wraps a curated, non-destructive subset of the Hedera Agent Kit: create topic, submit message, topic info and messages, and HBAR balance. Tool input is validated against the kit's own zod schemas before anything is signed.
-- **`McpToolProvider`** connects to remote MCP servers listed in `MCP_SERVERS`, so new capabilities (for example a supply-chain traceability service) plug in through configuration, without code changes. An unreachable server is skipped; it never takes the chatbot down.
+- **`HederaAgentKitProvider`** wraps a curated, non-destructive subset of the Hedera Agent Kit: topic info and messages and HBAR balance (free mirror node reads, run immediately), plus create topic and submit message (paid, run only after you accept). Tool input is validated against the kit's own zod schemas.
+- **`McpToolProvider`** connects to remote MCP servers listed in `MCP_SERVERS`, so new capabilities (for example a supply-chain traceability service) plug in through configuration, without code changes. Tools an MCP server does not declare read-only need your approval too. An unreachable server is skipped; it never takes the chatbot down.
 
 ## Tech stack
 

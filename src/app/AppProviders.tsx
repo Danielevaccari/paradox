@@ -4,6 +4,7 @@ import { SnackbarProvider } from "notistack";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { HederaNetwork } from "../../shared/api";
 import { fetchServerConfig } from "../api/serverApi";
+import { PaidActionProvider } from "../components/common/PaidActionProvider";
 import { createAppTheme } from "../theme/theme";
 import { errorMessage } from "../utils/format";
 import { AppContext, type AppContextValue, type ServerStatus } from "./appContext";
@@ -85,7 +86,7 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
             <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme />
                 <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} autoHideDuration={4000}>
-                    {children}
+                    <PaidActionProvider>{children}</PaidActionProvider>
                 </SnackbarProvider>
             </ThemeProvider>
         </AppContext.Provider>

@@ -12,6 +12,7 @@ import {
 } from "@hashgraph/hedera-agent-kit/plugins";
 import { z } from "zod";
 import type { Operator } from "../hedera";
+import { isPaidHederaTool, PAID_HEDERA_TOOLS } from "./paidTools";
 import type { ToolProvider } from "./toolProvider";
 
 /**
@@ -57,6 +58,10 @@ export class HederaAgentKitProvider implements ToolProvider {
             input_schema: toInputSchema(tool),
             eager_input_streaming: true,
         }));
+    }
+
+    approval(name: string, input: Record<string, unknown>) {
+        return isPaidHederaTool(name) ? PAID_HEDERA_TOOLS[name].describe(input) : null;
     }
 
     async callTool(name: string, input: unknown) {

@@ -3,6 +3,8 @@ import type {
     ChatMessage,
     CreateTopicRequest,
     CreateTopicResponse,
+    ExecuteToolRequest,
+    ExecuteToolResponse,
     RenewTopicRequest,
     ServerConfig,
     StatusResponse,
@@ -53,6 +55,8 @@ export const serverApi = {
     renewTopic: (body: RenewTopicRequest) => post<StatusResponse>("/api/hedera/renew-topic", body),
     deleteTopic: (body: TopicIdRequest) => post<StatusResponse>("/api/hedera/delete-topic", body),
     transfer: (body: TransferRequest) => post<TransferResponse>("/api/hedera/transfer", body),
+    /** Runs a chatbot action after the user accepted it in the chat. */
+    executeTool: (body: ExecuteToolRequest) => post<ExecuteToolResponse>("/api/chat/execute", body),
 };
 
 /** Streams chat events (NDJSON) from the server-side Claude agent. */

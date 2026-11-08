@@ -12,6 +12,8 @@ const systemPrompt = (network: HederaNetwork, accountId: string) =>
         "Use the tools to create topics, submit topic messages, read topic info and messages, and check HBAR balances.",
         "Hedera ids look like 0.0.12345. Ask for a topic id when the user has not given one; never invent ids.",
         "Before creating a topic or submitting a message, make sure you know the memo or message text the user wants.",
+        "Creating topics and submitting messages cost HBAR, so the user must accept each one in the chat before it runs. Propose one action at a time and wait for their reply; never claim an action happened until their message says so.",
+        "Reads (topic info, topic messages, balances) are free and run immediately.",
         "After a write, report the resulting topic id or sequence number. New messages can take a few seconds to show up in queries.",
         "Keep answers short and use plain text; the chat window is narrow.",
     ].join("\n");
@@ -80,8 +82,20 @@ export const runChat = async ({ messages, registry, model, network, accountId, e
         history.push({ role: "assistant", content: message.content });
 
         // Run the tools of one turn concurrently and return all results in a single user message.
+        // Tools that cost HBAR are never run here: they become approval cards for the user.
         const results = await Promise.all(
             toolUses.map(async (toolUse): Promise<Anthropic.Beta.BetaToolResultBlockParam> => {
+                const approval = registry.approvalFor(toolUse.id, toolUse.name, toolUse.input);
+                if (approval) {
+                    emit({ type: "approval", approval });
+                    return {
+                        type: "tool_result",
+                        tool_use_id: toolUse.id,
+                        content:
+                            "NOT EXECUTED. This action costs HBAR, so the user has been asked to accept it in the chat. " +
+                            "Tell them briefly what you proposed and wait. Their decision and the result will arrive as their next message.",
+                    };
+                }
                 emit({ type: "tool", id: toolUse.id, name: toolUse.name, status: "start" });
                 try {
                     const output = await registry.call(toolUse.name, toolUse.input);

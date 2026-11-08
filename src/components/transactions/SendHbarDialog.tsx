@@ -1,7 +1,8 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment, Stack, TextField } from "@mui/material";
 import { useState } from "react";
-import { LIMITS } from "../../../shared/api";
+import { LIMITS, TYPICAL_FEE_HBAR } from "../../../shared/api";
 import { serverApi } from "../../api/serverApi";
+import { usePaidAction } from "../../app/paidActionContext";
 import { HBAR_SYMBOL, isEntityId } from "../../utils/format";
 import { notify } from "../../utils/notify";
 
@@ -15,28 +16,36 @@ type Props = {
 export const SendHbarDialog = ({ open, fromAccountId, onClose, onSent }: Props) => {
     const [to, setTo] = useState("");
     const [amount, setAmount] = useState("");
-    const [sending, setSending] = useState(false);
+    const confirmPaid = usePaidAction();
 
     const amountNumber = Number(amount);
     const valid = isEntityId(to) && to.trim() !== fromAccountId && amountNumber > 0 && amountNumber <= LIMITS.transferMaxHbar;
 
     const send = async () => {
-        setSending(true);
-        try {
-            const { transactionId } = await serverApi.transfer({ to: to.trim(), amountHbar: amountNumber });
-            notify.success(`Sent ${amountNumber} ${HBAR_SYMBOL} (${transactionId})`);
+        const destination = to.trim();
+        const ok = await confirmPaid({
+            title: `Send ${amountNumber} ${HBAR_SYMBOL} to ${destination}`,
+            description: "Transfers cannot be undone.",
+            feeHbar: TYPICAL_FEE_HBAR.transfer,
+            facts: [
+                { label: "Amount", value: `${amountNumber} ${HBAR_SYMBOL}` },
+                { label: "To", value: destination },
+            ],
+            confirmLabel: "Send HBAR",
+            run: async () => {
+                const { transactionId } = await serverApi.transfer({ to: destination, amountHbar: amountNumber });
+                notify.success(`Sent ${amountNumber} ${HBAR_SYMBOL} (${transactionId})`);
+            },
+        });
+        if (ok) {
             setTo("");
             setAmount("");
             onSent();
-        } catch (error) {
-            notify.error(error);
-        } finally {
-            setSending(false);
         }
     };
 
     return (
-        <Dialog open={open} onClose={sending ? undefined : onClose} maxWidth="xs">
+        <Dialog open={open} onClose={onClose} maxWidth="xs">
             <DialogTitle>Send HBAR</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ pt: 1 }}>
@@ -56,11 +65,9 @@ export const SendHbarDialog = ({ open, fromAccountId, onClose, onSent }: Props) 
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} disabled={sending}>
-                    Cancel
-                </Button>
-                <Button variant="contained" onClick={send} disabled={!valid || sending}>
-                    {sending ? "Sending…" : "Send"}
+                <Button onClick={onClose}>Cancel</Button>
+                <Button variant="contained" onClick={send} disabled={!valid}>
+                    Continue
                 </Button>
             </DialogActions>
         </Dialog>

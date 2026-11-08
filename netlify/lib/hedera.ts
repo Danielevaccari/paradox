@@ -7,14 +7,12 @@ import {
     TopicCreateTransaction,
     TopicDeleteTransaction,
     TopicId,
-    TopicInfoQuery,
     TopicMessageSubmitTransaction,
     TopicUpdateTransaction,
     TransferTransaction,
 } from "@hiero-ledger/sdk";
 import type { HederaNetwork } from "../../shared/api";
 import { ConfigError, getServerEnv } from "./env";
-import { HttpError } from "./http";
 
 export interface Operator {
     client: Client;
@@ -77,7 +75,8 @@ export const getOperator = (): Operator | null => {
     const privateKey = parsePrivateKey(env.privateKey, env.keyType);
     const client = clientForNetwork(env.network).setOperator(accountId, privateKey);
     client.setDefaultMaxTransactionFee(MAX_TRANSACTION_FEE);
-    client.setDefaultMaxQueryPayment(new Hbar(1));
+    // Never pay for queries: reads go through the free mirror node. A zero cap makes any paid query fail.
+    client.setDefaultMaxQueryPayment(new Hbar(0));
 
     const operator = { client, network: env.network, accountId, privateKey };
     cached = { cacheKey, operator };
@@ -126,20 +125,15 @@ export const submitTopicMessage = async (topicId: string, message: string) => {
 /** Hedera only accepts expiration times up to ~92 days (8,000,001 s) ahead. */
 const MAX_EXPIRATION_DAYS = 92;
 
-/** Renews a topic so it expires `days` from now (not from its current expiration, which Hedera would reject). */
+/**
+ * Renews a topic so it expires `days` from now. This is a paid transaction; it deliberately does
+ * not read the current expiry first, because SDK queries cost HBAR (reads use the free mirror node).
+ */
 export const renewTopic = async (topicId: string, days: number) => {
     const { client, privateKey } = requireOperator();
-    const id = TopicId.fromString(topicId);
-    const info = await new TopicInfoQuery().setTopicId(id).execute(client);
     const target = new Date(Date.now() + Math.min(days, MAX_EXPIRATION_DAYS) * 24 * 60 * 60 * 1000);
-    const current = info.expirationTime?.toDate();
-
-    if (current && current.getTime() >= target.getTime() - 60 * 60 * 1000) {
-        throw new HttpError(409, `Topic already expires on ${current.toISOString().slice(0, 10)}, the furthest Hedera allows.`);
-    }
-
     const tx = await new TopicUpdateTransaction()
-        .setTopicId(id)
+        .setTopicId(TopicId.fromString(topicId))
         .setExpirationTime(Timestamp.fromDate(target))
         .freezeWith(client)
         .sign(privateKey);

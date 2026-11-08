@@ -13,8 +13,9 @@ import {
     useTheme,
 } from "@mui/material";
 import { lazy, Suspense, useState } from "react";
-import { LIMITS } from "../../../shared/api";
+import { LIMITS, TYPICAL_FEE_HBAR } from "../../../shared/api";
 import { serverApi } from "../../api/serverApi";
+import { usePaidAction } from "../../app/paidActionContext";
 import { byteLength } from "../../utils/format";
 import { notify } from "../../utils/notify";
 
@@ -38,11 +39,11 @@ type Props = {
 };
 
 export const ComposeMessageDialog = ({ open, topicId, onClose, onSent }: Props) => {
+    const confirmPaid = usePaidAction();
     const theme = useTheme();
     const compact = useMediaQuery(theme.breakpoints.down("sm"));
     const [language, setLanguage] = useState("json");
     const [value, setValue] = useState("");
-    const [sending, setSending] = useState(false);
 
     const bytes = byteLength(value);
     const tooLarge = bytes > LIMITS.messageMaxBytes;
@@ -58,21 +59,26 @@ export const ComposeMessageDialog = ({ open, topicId, onClose, onSent }: Props) 
             }
         }
 
-        setSending(true);
-        try {
-            const { sequenceNumber } = await serverApi.submitMessage({ topicId, message });
-            notify.success(`Message #${sequenceNumber} submitted`);
+        let sequenceNumber = 0;
+        const ok = await confirmPaid({
+            title: `Submit a message to topic ${topicId}`,
+            description: `${byteLength(message).toLocaleString()} bytes. Messages are public and cannot be edited or removed.`,
+            // Roughly 0.01 per KB on testnet, never below the base fee.
+            feeHbar: Math.max(TYPICAL_FEE_HBAR.submitMessage, Math.ceil(byteLength(message) / 1024) * 0.01),
+            confirmLabel: "Submit message",
+            run: async () => {
+                ({ sequenceNumber } = await serverApi.submitMessage({ topicId, message }));
+                notify.success(`Message #${sequenceNumber} submitted`);
+            },
+        });
+        if (ok) {
             setValue("");
             onSent(sequenceNumber);
-        } catch (error) {
-            notify.error(error);
-        } finally {
-            setSending(false);
         }
     };
 
     return (
-        <Dialog open={open} onClose={sending ? undefined : onClose} maxWidth="md" fullScreen={compact}>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullScreen={compact}>
             <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                 <Box sx={{ flexGrow: 1 }}>
                     New message
@@ -123,11 +129,9 @@ export const ComposeMessageDialog = ({ open, topicId, onClose, onSent }: Props) 
                 <Typography variant="caption" color={tooLarge ? "error" : "text.secondary"} sx={{ mr: "auto" }}>
                     {bytes.toLocaleString()} / {LIMITS.messageMaxBytes.toLocaleString()} bytes
                 </Typography>
-                <Button onClick={onClose} disabled={sending}>
-                    Cancel
-                </Button>
-                <Button variant="contained" onClick={send} disabled={!value.trim() || tooLarge || sending}>
-                    {sending ? "Submitting…" : "Submit"}
+                <Button onClick={onClose}>Cancel</Button>
+                <Button variant="contained" onClick={send} disabled={!value.trim() || tooLarge}>
+                    Continue
                 </Button>
             </DialogActions>
         </Dialog>

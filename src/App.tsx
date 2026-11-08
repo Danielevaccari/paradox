@@ -11,6 +11,7 @@ export const App = () => {
             <AppShell>
                 <Routes>
                     <Route path="/" element={<TopicsView />} />
+                    <Route path="/topics/:topicId" element={<TopicsView />} />
                     <Route path="/accounts" element={<AccountsView />} />
                     <Route path="/transactions" element={<TransactionsView />} />
                     <Route path="/settings" element={<SettingsView />} />

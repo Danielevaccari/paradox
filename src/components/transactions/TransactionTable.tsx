@@ -5,7 +5,7 @@ import type { HederaNetwork } from "../../../shared/api";
 import type { Transaction } from "../../api/mirrorNode";
 import { consensusToDate, formatHbar, formatTimestamp } from "../../utils/format";
 import { formatTransactionType } from "../../utils/transactionTypes";
-import { AppDataGrid } from "../common/AppDataGrid";
+import { AppDataGrid, ROW_HEIGHT, ROW_HEIGHT_TWO_LINES } from "../common/AppDataGrid";
 import { TransactionDetailsDialog } from "./TransactionDetailsDialog";
 
 declare module "@mui/x-data-grid" {
@@ -146,13 +146,12 @@ export const TransactionTable = ({ transactions, accountId, network, loading, on
                 rows={rows}
                 columns={columns}
                 loading={loading && rows.length === 0}
-                rowHeight={wide ? 36 : 52}
+                rowHeight={wide ? ROW_HEIGHT : ROW_HEIGHT_TWO_LINES}
                 columnVisibilityModel={{ entity_id: wide, charged_tx_fee: wide, time: wide, transaction_id: false, result: false }}
                 onRowClick={({ row }) => setSelected(row)}
                 slots={{ footer: Footer }}
                 slotProps={{ footer: { onLoadMore, loadingMore }, toolbar: { start: toolbarStart } }}
                 localeText={{ noRowsLabel: "No transactions for this account and type" }}
-                sx={{ "& .secondary": { color: "text.secondary" } }}
             />
             <TransactionDetailsDialog transaction={selected} accountId={accountId} network={network} onClose={() => setSelected(null)} />
         </>

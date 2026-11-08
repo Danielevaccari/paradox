@@ -133,6 +133,23 @@ export const getTopicMessages = async (network: HederaNetwork, topicId: string, 
     return assembleMessages([...data.messages].reverse()).reverse();
 };
 
+export interface TopicSummary {
+    topic: Topic;
+    /** Latest sequence number, i.e. how many messages (and chunks) the topic has received. */
+    messageCount: number;
+    lastMessageAt: string | null;
+}
+
+/** A topic with its message count and last activity: two free mirror node reads. */
+export const getTopicSummary = async (network: HederaNetwork, topicId: string, signal?: AbortSignal): Promise<TopicSummary> => {
+    const [topic, latest] = await Promise.all([
+        getTopic(network, topicId, signal),
+        get<{ messages: RawTopicMessage[] }>(network, `/api/v1/topics/${topicId}/messages?limit=1&order=desc`, signal).catch(() => null),
+    ]);
+    const last = latest?.messages[0];
+    return { topic, messageCount: last?.sequence_number ?? 0, lastMessageAt: last?.consensus_timestamp ?? null };
+};
+
 export const getAccount = (network: HederaNetwork, accountId: string, signal?: AbortSignal) =>
     get<Account>(network, `/api/v1/accounts/${accountId}?transactions=false`, signal);
 

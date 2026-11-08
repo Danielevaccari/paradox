@@ -1,4 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
+import type { PendingApproval } from "../../../shared/api";
+import { asInputObject } from "./paidTools";
 
 /**
  * A source of tools for the chatbot. The chat loop only talks to this interface, so new sources
@@ -11,6 +13,11 @@ export interface ToolProvider {
     listTools(): Promise<Anthropic.Beta.BetaTool[]>;
     /** Runs a tool by its provider-local name and returns text for the model. Throw to report a failure. */
     callTool(name: string, input: unknown): Promise<string>;
+    /**
+     * Returns a description when running this tool costs HBAR (or might). Such tools never run on their
+     * own: the user has to accept them first. Return null for free, read-only tools.
+     */
+    approval(name: string, input: Record<string, unknown>): { label: string; feeHbar: number | null } | null;
     close?(): Promise<void>;
 }
 
@@ -44,7 +51,7 @@ export class ToolRegistry {
         return new ToolRegistry(active, tools);
     }
 
-    async call(qualifiedName: string, input: unknown) {
+    private resolve(qualifiedName: string) {
         const separatorIndex = qualifiedName.indexOf(SEPARATOR);
         const providerId = qualifiedName.slice(0, separatorIndex);
         const name = qualifiedName.slice(separatorIndex + SEPARATOR.length);
@@ -53,6 +60,29 @@ export class ToolRegistry {
         if (separatorIndex < 0 || !provider) {
             throw new Error(`Unknown tool ${qualifiedName}`);
         }
+        return { provider, name };
+    }
+
+    /** Runs a free tool. Paid tools must go through {@link approvalFor} first and then `execute`. */
+    async call(qualifiedName: string, input: unknown) {
+        const { provider, name } = this.resolve(qualifiedName);
+        if (provider.approval(name, asInputObject(input))) {
+            throw new Error("This action costs HBAR and needs the user's approval first.");
+        }
+        return provider.callTool(name, input);
+    }
+
+    /** Describes the approval the user has to give before this call may run, or null when it is free. */
+    approvalFor(id: string, qualifiedName: string, input: unknown): PendingApproval | null {
+        const { provider, name } = this.resolve(qualifiedName);
+        const safeInput = asInputObject(input);
+        const approval = provider.approval(name, safeInput);
+        return approval ? { id, tool: qualifiedName, input: safeInput, ...approval } : null;
+    }
+
+    /** Runs a tool the user has approved. */
+    async execute(qualifiedName: string, input: unknown) {
+        const { provider, name } = this.resolve(qualifiedName);
         return provider.callTool(name, input);
     }
 

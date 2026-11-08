@@ -1,11 +1,10 @@
-import { ReceiptLongOutlined, RefreshRounded, SendRounded } from "@mui/icons-material";
-import { Alert, Box, Button, Card, IconButton, LinearProgress, MenuItem, Stack, TextField, Tooltip } from "@mui/material";
+import { RefreshRounded, SendRounded } from "@mui/icons-material";
+import { Alert, Box, Button, IconButton, LinearProgress, MenuItem, Stack, TextField, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { getTransactions, type Transaction } from "../api/mirrorNode";
 import { useApp } from "../app/appContext";
 import { preferences } from "../app/preferences";
 import { EmptyState } from "../components/common/EmptyState";
-import { fillCardSx } from "../components/common/layoutSx";
 import { PageHeader } from "../components/common/PageHeader";
 import { WriteButton } from "../components/common/WriteButton";
 import { SendHbarDialog } from "../components/transactions/SendHbarDialog";
@@ -74,12 +73,12 @@ export const TransactionsView = () => {
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, alignItems: "center", flex: { xs: "1 1 100%", md: "0 1 auto" } }}>
             <Stack direction="row" spacing={0.5} sx={{ flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
                 <TextField
-                    label="Account ID"
-                    placeholder={effectiveId ?? "0.0.12345"}
+                    placeholder={effectiveId ?? "Account ID"}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onKeyDown={(event) => event.key === "Enter" && search()}
-                    sx={{ flex: 1, minWidth: 0, width: { sm: 160 } }}
+                    slotProps={{ htmlInput: { "aria-label": "Account ID" } }}
+                    sx={{ flex: 1, minWidth: 0, width: { sm: 170 } }}
                 />
                 <Button variant="outlined" onClick={search} disabled={!input.trim()}>
                     Show
@@ -88,9 +87,8 @@ export const TransactionsView = () => {
             <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
                 <TextField
                     select
-                    label="Type"
                     value={type}
-                    slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+                    slotProps={{ select: { displayEmpty: true }, htmlInput: { "aria-label": "Transaction type" } }}
                     onChange={(event) => {
                         setType(event.target.value);
                         preferences.setTransactionType(event.target.value);
@@ -119,7 +117,7 @@ export const TransactionsView = () => {
         <>
             <PageHeader
                 title="Transactions"
-                subtitle="Recent transactions of an account, newest first."
+                hint="Newest first, from the free mirror node"
                 actions={
                     serverConfig?.features.transfer && (
                         <WriteButton variant="contained" startIcon={<SendRounded />} onClick={() => setSendOpen(true)}>
@@ -129,36 +127,30 @@ export const TransactionsView = () => {
                 }
             />
 
-            <Card sx={fillCardSx}>
-                <Box sx={{ height: 2, flexShrink: 0 }}>{loading && <LinearProgress sx={{ height: 2 }} />}</Box>
+            <Box sx={{ height: 2, flexShrink: 0 }}>{loading && <LinearProgress sx={{ height: 2 }} />}</Box>
 
-                {error && (
-                    <Alert severity="error" sx={{ m: 2 }}>
-                        {error}
-                    </Alert>
-                )}
+            {error && (
+                <Alert severity="error" sx={{ m: 1.5 }}>
+                    {error}
+                </Alert>
+            )}
 
-                {!effectiveId ? (
-                    <>
-                        <Box sx={{ p: 1 }}>{controls}</Box>
-                        <EmptyState
-                            icon={<ReceiptLongOutlined />}
-                            title="Choose an account"
-                            description="Enter an account id to list its transactions."
-                        />
-                    </>
-                ) : (
-                    <TransactionTable
-                        transactions={transactions}
-                        accountId={effectiveId}
-                        network={network}
-                        loading={loading}
-                        onLoadMore={next ? loadMore : undefined}
-                        loadingMore={loadingMore}
-                        toolbarStart={controls}
-                    />
-                )}
-            </Card>
+            {!effectiveId ? (
+                <>
+                    <Box sx={{ p: { xs: 1.5, sm: 2 }, display: "flex" }}>{controls}</Box>
+                    <EmptyState title="Choose an account" description="Enter an account id to list its transactions." />
+                </>
+            ) : (
+                <TransactionTable
+                    transactions={transactions}
+                    accountId={effectiveId}
+                    network={network}
+                    loading={loading}
+                    onLoadMore={next ? loadMore : undefined}
+                    loadingMore={loadingMore}
+                    toolbarStart={controls}
+                />
+            )}
 
             {serverConfig?.accountId && (
                 <SendHbarDialog

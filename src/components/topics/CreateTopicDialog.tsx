@@ -11,8 +11,9 @@ import {
     Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { LIMITS } from "../../../shared/api";
+import { LIMITS, TYPICAL_FEE_HBAR } from "../../../shared/api";
 import { serverApi } from "../../api/serverApi";
+import { usePaidAction } from "../../app/paidActionContext";
 import { notify } from "../../utils/notify";
 
 type Props = {
@@ -22,32 +23,36 @@ type Props = {
 };
 
 export const CreateTopicDialog = ({ open, onClose, onCreated }: Props) => {
+    const confirmPaid = usePaidAction();
     const [memo, setMemo] = useState("");
     const [adminKey, setAdminKey] = useState(true);
     const [submitKey, setSubmitKey] = useState(false);
-    const [creating, setCreating] = useState(false);
 
     const trimmed = memo.trim();
 
     const create = async () => {
-        setCreating(true);
-        try {
-            const { topicId } = await serverApi.createTopic({ memo: trimmed, adminKey, submitKey });
-            notify.success(`Topic ${topicId} created`);
+        let topicId = "";
+        const ok = await confirmPaid({
+            title: `Create topic “${trimmed}”`,
+            description: `${submitKey ? "Private: only this app's account can post." : "Public: anyone can post."} ${adminKey ? "Has an admin key." : "No admin key, so it cannot be changed or deleted."}`,
+            feeHbar: TYPICAL_FEE_HBAR.createTopic,
+            confirmLabel: "Create topic",
+            run: async () => {
+                ({ topicId } = await serverApi.createTopic({ memo: trimmed, adminKey, submitKey }));
+                notify.success(`Topic ${topicId} created`);
+            },
+        });
+        if (ok) {
             setMemo("");
             onCreated(topicId);
-        } catch (error) {
-            notify.error(error);
-        } finally {
-            setCreating(false);
         }
     };
 
     return (
-        <Dialog open={open} onClose={creating ? undefined : onClose} maxWidth="xs">
+        <Dialog open={open} onClose={onClose} maxWidth="xs">
             <DialogTitle>Create topic</DialogTitle>
             <DialogContent>
-                <Stack spacing={2} sx={{ pt: 1 }}>
+                <Stack spacing={1.5} sx={{ pt: 1 }}>
                     <TextField
                         autoFocus
                         fullWidth
@@ -55,12 +60,12 @@ export const CreateTopicDialog = ({ open, onClose, onCreated }: Props) => {
                         value={memo}
                         onChange={(event) => setMemo(event.target.value)}
                         onKeyDown={(event) => {
-                            if (event.key === "Enter" && trimmed && !creating) {
+                            if (event.key === "Enter" && trimmed) {
                                 void create();
                             }
                         }}
                         slotProps={{ htmlInput: { maxLength: LIMITS.memoMaxLength } }}
-                        helperText="A short public description of the topic"
+                        helperText="A short public description"
                     />
                     <div>
                         <FormControlLabel
@@ -68,13 +73,13 @@ export const CreateTopicDialog = ({ open, onClose, onCreated }: Props) => {
                             label="Admin key"
                         />
                         <Typography variant="caption" color="text.secondary" component="p" sx={{ ml: 6, mt: -0.5 }}>
-                            Lets this app update or delete the topic later.
+                            Lets this app renew or delete the topic later.
                         </Typography>
                     </div>
                     <div>
                         <FormControlLabel
                             control={<Switch checked={submitKey} onChange={(e) => setSubmitKey(e.target.checked)} />}
-                            label="Private (submit key)"
+                            label="Private"
                         />
                         <Typography variant="caption" color="text.secondary" component="p" sx={{ ml: 6, mt: -0.5 }}>
                             Only this app&apos;s account can post messages.
@@ -83,11 +88,9 @@ export const CreateTopicDialog = ({ open, onClose, onCreated }: Props) => {
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} disabled={creating}>
-                    Cancel
-                </Button>
-                <Button variant="contained" onClick={create} disabled={!trimmed || creating}>
-                    {creating ? "Creating…" : "Create"}
+                <Button onClick={onClose}>Cancel</Button>
+                <Button variant="contained" onClick={create} disabled={!trimmed}>
+                    Continue
                 </Button>
             </DialogActions>
         </Dialog>

@@ -12,6 +12,8 @@ import type { ToolProvider } from "./toolProvider";
 export class McpToolProvider implements ToolProvider {
     readonly id: string;
     private client: Client | null = null;
+    /** Tools that declared themselves read-only (MCP annotation `readOnlyHint`). */
+    private readonly readOnly = new Set<string>();
 
     constructor(private readonly server: McpServerConfig) {
         this.id = server.id;
@@ -32,11 +34,21 @@ export class McpToolProvider implements ToolProvider {
     async listTools(): Promise<Anthropic.Beta.BetaTool[]> {
         const client = await this.connect();
         const { tools } = await client.listTools();
+        for (const tool of tools) {
+            if (tool.annotations?.readOnlyHint === true) {
+                this.readOnly.add(tool.name);
+            }
+        }
         return tools.map((tool) => ({
             name: tool.name,
             description: tool.description ?? "",
             input_schema: { ...tool.inputSchema, type: "object" } as Anthropic.Beta.BetaTool.InputSchema,
         }));
+    }
+
+    /** Third-party tools are unknown territory: anything not declared read-only needs the user's approval. */
+    approval(name: string) {
+        return this.readOnly.has(name) ? null : { label: `Run ${this.id} tool “${name}”`, feeHbar: null };
     }
 
     async callTool(name: string, input: unknown) {

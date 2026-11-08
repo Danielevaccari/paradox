@@ -15,8 +15,15 @@ React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), 
 - `src/app/`: app context (network, theme, server config, `canWrite`) and localStorage preferences.
 - `src/views/`: pages. `src/components/`: feature parts (`topics`, `transactions`, `chat`, `layout`, `common`).
 - `shared/api.ts`: request and response types and limits shared by the browser and the functions.
-- `netlify/functions/`: `config.ts`, `hedera.ts` (`/api/hedera/:action`) and `chat.ts` (streamed NDJSON).
+- `netlify/functions/`: `config.ts`, `hedera.ts` (`/api/hedera/:action`), `chat.ts` (streamed NDJSON) and `chat-execute.ts` (runs a chatbot action after the user accepted it).
 - `netlify/lib/`: env parsing, the Hedera client and operations, HTTP helpers, rate limit and `chat/` (tool loop and tool providers).
+
+## Hedera cost rule (non-negotiable)
+- **Free first: every read uses the free Hedera mirror node REST API** (`src/api/mirrorNode.ts`, and the Agent Kit's query tools, which already use it). Never add SDK queries such as `TopicInfoQuery`, `AccountBalanceQuery` or `TopicMessageQuery`: they cost HBAR. The server client's query payment cap is 0 on purpose.
+- **Anything that costs HBAR must be accepted by the user before it runs.** That covers every transaction (create/update/delete topic, submit message, transfer) and any third-party tool that is not declared read-only.
+  - In the UI, call `usePaidAction()` and pass the work as `run`; it shows the network, paying account and typical fee, and only runs `run` after the user accepts. Never call `serverApi` write methods directly from a click handler.
+  - In the chatbot, paid tools never run inside the chat loop. `ToolProvider.approval()` marks them, the loop emits an approval card instead, and `/api/chat/execute` runs the tool only after the user accepts it.
+  - New paid actions need a typical fee in `TYPICAL_FEE_HBAR` (`shared/api.ts`).
 
 ## Security rules (non-negotiable)
 - **Never put a private key, API key or secret in frontend code or in a `VITE_*` variable.** Vite bundles every `VITE_*` value into public JavaScript.
@@ -29,11 +36,12 @@ React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), 
 - `netlify/lib/chat/agent.ts` runs a manual streaming tool loop. The model comes from `CLAUDE_MODEL` (default `claude-opus-5-5`), with server-side refusal fallbacks.
 - Tools come from `ToolProvider` sources merged by `ToolRegistry`, with names prefixed `<provider>__<tool>`. Hedera Agent Kit tools run in-process. Remote MCP servers come from the `MCP_SERVERS` env var.
 - To add a tool source, add a provider (or an `MCP_SERVERS` entry). Do not change the loop. Keep destructive tools out of the chatbot.
+- Paid tools (create topic, submit message, and any MCP tool not marked `readOnlyHint`) become approval cards in the chat; see the Hedera cost rule.
 
 ## Conventions
 - Use MUI `sx` and theme tokens (`src/theme/theme.ts`), never hard-coded colours, so light and dark mode both work.
 - Every view must work down to 320px width with no horizontal page scroll. Hide secondary table columns below `md`.
-- Keep the UI compact and square (theme `borderRadius: 4`, small controls). The page never scrolls on list views: lists fill the height and only their rows scroll, using `fillCardSx`. Tabular data uses `AppDataGrid` (MUI X Data Grid with the app's toolbar and styling); pass view controls through `slotProps.toolbar.start`.
+- Design is minimal and flat: system fonts, neutral greys plus one accent (`src/theme/theme.ts`), 1px dividers, no cards or shadows, radius 4. Pages use all the space (no page padding or max width) and scroll only their own content: grid rows, message lists. Tabular data uses `AppDataGrid` (MUI X Data Grid; pass view controls through `slotProps.toolbar.start`). Topics are a list plus a detail pane (`TopicList`, `TopicDetail`) at `/` and `/topics/:id`.
 - Load data with `useAsyncData`. Don't call setState synchronously in effects (react-hooks 7 flags it).
 - Component files export only components, so fast refresh keeps working.
 - Show user-facing messages with `notify` (notistack).
