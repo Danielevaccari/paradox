@@ -18,7 +18,8 @@ Create Hedera topics, submit and read messages, look up accounts and browse tran
 
 - **Topics:** create public or private (submit-key) topics, renew and delete them, and keep a per-network list of topics you follow.
 - **Messages:** compose JSON, YAML, XML or text in a Monaco editor (with a byte counter). Messages larger than one chunk are split across up to 20 chunks and reassembled, with correct UTF-8, when read back.
-- **Accounts and transactions:** balance, staking and expiry details, and paginated transaction history with readable types and per-transfer details.
+- **Data grids:** topics and transactions use [MUI X Data Grid](https://mui.com/x/react-data-grid/) (MIT), with virtualized rows, sorting, quick search, column filters, a column picker and CSV export. Only the rows scroll; the header and toolbar stay put.
+- **Accounts and transactions:** balance, staking and expiry details, and transaction history with readable types, a details dialog (every transfer, plus a HashScan link) and "load older" paging.
 - **AI assistant:** chat with Claude, which creates topics, submits messages and queries Hedera through tool calls. Replies stream live, with a chip for each tool call.
 - **Any network, safely:** browse mainnet, testnet or previewnet read-only. Writes only happen on the network the server is configured for, which is testnet by default.
 - **Polished UI:** light and dark mode (follows the OS), responsive down to 375px phones, and keyboard-friendly dialogs.
@@ -58,7 +59,7 @@ interface ToolProvider {
 
 ## Tech stack
 
-React 19 · TypeScript 6 · Vite 8 · MUI 9 (Emotion) · react-router 8 · Netlify Functions · `@hiero-ledger/sdk` · `@hashgraph/hedera-agent-kit` · `@anthropic-ai/sdk` · `@modelcontextprotocol/sdk` · zod · ESLint 10 · Prettier
+React 19 · TypeScript 6 · Vite 8 · MUI 9 (Emotion) · MUI X Data Grid · react-router 8 · Netlify Functions · `@hiero-ledger/sdk` · `@hashgraph/hedera-agent-kit` · `@anthropic-ai/sdk` · `@modelcontextprotocol/sdk` · zod · ESLint 10 · Prettier
 
 ## Run it locally
 

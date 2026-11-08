@@ -1,5 +1,5 @@
-import { AddRounded, ForumOutlined, RefreshRounded, SearchRounded } from "@mui/icons-material";
-import { Alert, Box, Button, Card, IconButton, InputAdornment, LinearProgress, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { AddRounded, ForumOutlined, RefreshRounded } from "@mui/icons-material";
+import { Alert, Box, Button, Card, IconButton, LinearProgress, Stack, TextField, Tooltip } from "@mui/material";
 import { useMemo, useState } from "react";
 import { getTopic, isTopicIndexed, waitFor } from "../api/mirrorNode";
 import { serverApi } from "../api/serverApi";
@@ -24,7 +24,6 @@ export const TopicsView = () => {
     const savedIds = useMemo(() => preferences.getSavedTopicIds(network), [network, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const [lookup, setLookup] = useState("");
-    const [search, setSearch] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
     const [openTopicId, setOpenTopicId] = useState<string | null>(null);
     const [busyTopicId, setBusyTopicId] = useState<string | null>(null);
@@ -45,11 +44,7 @@ export const TopicsView = () => {
         setVersion((v) => v + 1);
     };
 
-    const rows = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        const all: TopicRow[] = data ?? savedIds.map((id) => ({ id }));
-        return term ? all.filter((row) => row.id.includes(term) || row.topic?.memo.toLowerCase().includes(term)) : all;
-    }, [data, savedIds, search]);
+    const rows: TopicRow[] = useMemo(() => data ?? savedIds.map((id) => ({ id })), [data, savedIds]);
 
     const addTopic = async () => {
         const id = lookup.trim();
@@ -100,6 +95,27 @@ export const TopicsView = () => {
 
     const openRow = data?.find((row) => row.id === openTopicId);
 
+    const controls = (
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
+            <TextField
+                label="Add topic by ID"
+                placeholder="0.0.12345"
+                value={lookup}
+                onChange={(event) => setLookup(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && addTopic()}
+                sx={{ flex: 1, minWidth: 0, width: { sm: 200 } }}
+            />
+            <Button variant="outlined" onClick={addTopic} disabled={!lookup.trim()}>
+                Add
+            </Button>
+            <Tooltip title="Refresh">
+                <IconButton onClick={reload} aria-label="Refresh topics">
+                    <RefreshRounded fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        </Stack>
+    );
+
     return (
         <>
             <PageHeader
@@ -117,50 +133,6 @@ export const TopicsView = () => {
             />
 
             <Card sx={fillCardSx}>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, p: 1, flexShrink: 0, alignItems: "center" }}>
-                    <Stack direction="row" spacing={1} sx={{ flex: { xs: "1 1 100%", sm: "0 1 340px" } }}>
-                        <TextField
-                            fullWidth
-                            label="Add topic by ID"
-                            placeholder="0.0.12345"
-                            value={lookup}
-                            onChange={(event) => setLookup(event.target.value)}
-                            onKeyDown={(event) => event.key === "Enter" && addTopic()}
-                            sx={{ maxWidth: { sm: 260 } }}
-                        />
-                        <Button variant="outlined" onClick={addTopic} disabled={!lookup.trim()}>
-                            Add
-                        </Button>
-                    </Stack>
-                    <Stack
-                        direction="row"
-                        spacing={0.5}
-                        sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 320px" }, ml: { sm: "auto" } }}
-                    >
-                        <TextField
-                            fullWidth
-                            placeholder="Search memo or id"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            slotProps={{
-                                input: {
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchRounded fontSize="small" />
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
-                            sx={{ minWidth: { sm: 220 } }}
-                        />
-                        <Tooltip title="Refresh">
-                            <IconButton onClick={reload} aria-label="Refresh topics">
-                                <RefreshRounded />
-                            </IconButton>
-                        </Tooltip>
-                    </Stack>
-                </Box>
-
                 <Box sx={{ height: 2, flexShrink: 0 }}>{(loading || creatingTopicId) && <LinearProgress sx={{ height: 2 }} />}</Box>
 
                 {creatingTopicId && (
@@ -170,27 +142,28 @@ export const TopicsView = () => {
                 )}
 
                 {savedIds.length === 0 && !creatingTopicId ? (
-                    <EmptyState
-                        icon={<ForumOutlined />}
-                        title="No topics yet"
-                        description={
-                            canWrite
-                                ? "Create a topic, or add an existing one by its id to read its messages."
-                                : "Add an existing topic by its id to read its messages."
-                        }
-                        action={
-                            <WriteButton variant="contained" startIcon={<AddRounded />} onClick={() => setCreateOpen(true)}>
-                                Create topic
-                            </WriteButton>
-                        }
-                    />
-                ) : rows.length === 0 ? (
-                    <Typography color="text.secondary" sx={{ p: 3, textAlign: "center" }}>
-                        No topics match “{search}”.
-                    </Typography>
+                    <>
+                        <Box sx={{ p: 1 }}>{controls}</Box>
+                        <EmptyState
+                            icon={<ForumOutlined />}
+                            title="No topics yet"
+                            description={
+                                canWrite
+                                    ? "Create a topic, or add an existing one by its id to read its messages."
+                                    : "Add an existing topic by its id to read its messages."
+                            }
+                            action={
+                                <WriteButton variant="contained" startIcon={<AddRounded />} onClick={() => setCreateOpen(true)}>
+                                    Create topic
+                                </WriteButton>
+                            }
+                        />
+                    </>
                 ) : (
                     <TopicTable
+                        toolbarStart={controls}
                         rows={rows}
+                        loading={loading}
                         busyTopicId={busyTopicId}
                         onOpen={(row) => setOpenTopicId(row.id)}
                         onExtend={(id) =>

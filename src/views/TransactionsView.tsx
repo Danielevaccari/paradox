@@ -1,5 +1,5 @@
 import { ReceiptLongOutlined, RefreshRounded, SendRounded } from "@mui/icons-material";
-import { Alert, Box, Button, Card, IconButton, LinearProgress, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, IconButton, LinearProgress, MenuItem, Stack, TextField, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { getTransactions, type Transaction } from "../api/mirrorNode";
 import { useApp } from "../app/appContext";
@@ -70,6 +70,51 @@ export const TransactionsView = () => {
         setAccountId(id);
     };
 
+    const controls = (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, alignItems: "center", flex: { xs: "1 1 100%", md: "0 1 auto" } }}>
+            <Stack direction="row" spacing={0.5} sx={{ flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
+                <TextField
+                    label="Account ID"
+                    placeholder={effectiveId ?? "0.0.12345"}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={(event) => event.key === "Enter" && search()}
+                    sx={{ flex: 1, minWidth: 0, width: { sm: 160 } }}
+                />
+                <Button variant="outlined" onClick={search} disabled={!input.trim()}>
+                    Show
+                </Button>
+            </Stack>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
+                <TextField
+                    select
+                    label="Type"
+                    value={type}
+                    slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+                    onChange={(event) => {
+                        setType(event.target.value);
+                        preferences.setTransactionType(event.target.value);
+                    }}
+                    sx={{ flex: 1, minWidth: 0, width: { sm: 200 } }}
+                >
+                    <MenuItem value="">All types</MenuItem>
+                    {TRANSACTION_TYPES.map((value) => (
+                        <MenuItem key={value} value={value} dense>
+                            {formatTransactionType(value)}
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <Tooltip title="Refresh">
+                    <span>
+                        <IconButton onClick={refresh} disabled={!key} aria-label="Refresh transactions">
+                            <RefreshRounded fontSize="small" />
+                        </IconButton>
+                    </span>
+                </Tooltip>
+            </Stack>
+        </Box>
+    );
+
     return (
         <>
             <PageHeader
@@ -85,55 +130,6 @@ export const TransactionsView = () => {
             />
 
             <Card sx={fillCardSx}>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, p: 1, flexShrink: 0, alignItems: "center" }}>
-                    <Stack direction="row" spacing={1} sx={{ flex: { xs: "1 1 100%", sm: "0 1 340px" } }}>
-                        <TextField
-                            fullWidth
-                            label="Account ID"
-                            placeholder={effectiveId ?? "0.0.12345"}
-                            value={input}
-                            onChange={(event) => setInput(event.target.value)}
-                            onKeyDown={(event) => event.key === "Enter" && search()}
-                            sx={{ maxWidth: { sm: 260 } }}
-                        />
-                        <Button variant="outlined" onClick={search} disabled={!input.trim()}>
-                            Show
-                        </Button>
-                    </Stack>
-                    <Stack
-                        direction="row"
-                        spacing={0.5}
-                        sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 320px" }, ml: { sm: "auto" } }}
-                    >
-                        <TextField
-                            select
-                            fullWidth
-                            label="Type"
-                            value={type}
-                            slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
-                            onChange={(event) => {
-                                setType(event.target.value);
-                                preferences.setTransactionType(event.target.value);
-                            }}
-                            sx={{ minWidth: { sm: 240 } }}
-                        >
-                            <MenuItem value="">All types</MenuItem>
-                            {TRANSACTION_TYPES.map((value) => (
-                                <MenuItem key={value} value={value}>
-                                    {formatTransactionType(value)}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <Tooltip title="Refresh">
-                            <span>
-                                <IconButton onClick={refresh} disabled={!key} aria-label="Refresh transactions">
-                                    <RefreshRounded />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                    </Stack>
-                </Box>
-
                 <Box sx={{ height: 2, flexShrink: 0 }}>{loading && <LinearProgress sx={{ height: 2 }} />}</Box>
 
                 {error && (
@@ -143,44 +139,24 @@ export const TransactionsView = () => {
                 )}
 
                 {!effectiveId ? (
-                    <EmptyState
-                        icon={<ReceiptLongOutlined />}
-                        title="Choose an account"
-                        description="Enter an account id to list its transactions."
-                    />
-                ) : firstPage && transactions.length === 0 ? (
-                    <EmptyState
-                        icon={<ReceiptLongOutlined />}
-                        title="No transactions"
-                        description="Nothing found for this account and type."
-                    />
+                    <>
+                        <Box sx={{ p: 1 }}>{controls}</Box>
+                        <EmptyState
+                            icon={<ReceiptLongOutlined />}
+                            title="Choose an account"
+                            description="Enter an account id to list its transactions."
+                        />
+                    </>
                 ) : (
-                    transactions.length > 0 && (
-                        <>
-                            <TransactionTable transactions={transactions} accountId={effectiveId} />
-                            <Stack
-                                direction="row"
-                                sx={{
-                                    px: 1.5,
-                                    py: 0.5,
-                                    flexShrink: 0,
-                                    borderTop: 1,
-                                    borderColor: "divider",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                }}
-                            >
-                                <Typography variant="body2" color="text.secondary">
-                                    {transactions.length} transactions
-                                </Typography>
-                                {next && (
-                                    <Button onClick={loadMore} disabled={loadingMore}>
-                                        {loadingMore ? "Loading…" : "Load more"}
-                                    </Button>
-                                )}
-                            </Stack>
-                        </>
-                    )
+                    <TransactionTable
+                        transactions={transactions}
+                        accountId={effectiveId}
+                        network={network}
+                        loading={loading}
+                        onLoadMore={next ? loadMore : undefined}
+                        loadingMore={loadingMore}
+                        toolbarStart={controls}
+                    />
                 )}
             </Card>
 

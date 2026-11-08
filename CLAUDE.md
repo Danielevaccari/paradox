@@ -8,7 +8,7 @@ Paradox is a React app for the Hedera Consensus Service: topics, topic messages,
 - `npm run format`: Prettier, with 4 spaces, double quotes and print width 140.
 
 ## Stack
-React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), Vite 8, MUI 9 with Emotion, react-router 8, Netlify Functions, `@hiero-ledger/sdk`, `@hashgraph/hedera-agent-kit`, `@anthropic-ai/sdk` and `@modelcontextprotocol/sdk`.
+React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), Vite 8, MUI 9 with Emotion, MUI X Data Grid (MIT), react-router 8, Netlify Functions, `@hiero-ledger/sdk`, `@hashgraph/hedera-agent-kit`, `@anthropic-ai/sdk` and `@modelcontextprotocol/sdk`.
 
 ## Layout
 - `src/api/`: `mirrorNode.ts` (public reads) and `serverApi.ts` (calls to `/api/*`).
@@ -33,7 +33,7 @@ React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), 
 ## Conventions
 - Use MUI `sx` and theme tokens (`src/theme/theme.ts`), never hard-coded colours, so light and dark mode both work.
 - Every view must work down to 320px width with no horizontal page scroll. Hide secondary table columns below `md`.
-- Keep the UI compact and square (theme `borderRadius: 4`, small controls). The page never scrolls on list views: lists fill the height and only their rows scroll, using `fillCardSx`, `scrollAreaSx` and sticky table headers.
+- Keep the UI compact and square (theme `borderRadius: 4`, small controls). The page never scrolls on list views: lists fill the height and only their rows scroll, using `fillCardSx`. Tabular data uses `AppDataGrid` (MUI X Data Grid with the app's toolbar and styling); pass view controls through `slotProps.toolbar.start`.
 - Load data with `useAsyncData`. Don't call setState synchronously in effects (react-hooks 7 flags it).
 - Component files export only components, so fast refresh keeps working.
 - Show user-facing messages with `notify` (notistack).

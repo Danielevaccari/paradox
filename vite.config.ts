@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
                 output: {
                     codeSplitting: {
                         groups: [
+                            { name: "mui-x", test: /node_modules[\\/]@mui[\\/]x-/ },
                             { name: "mui", test: /node_modules[\\/]@mui/ },
                             { name: "react", test: /node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/ },
                         ],
