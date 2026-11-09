@@ -5,6 +5,7 @@ import { useApp } from "../app/appContext";
 import { preferences } from "../app/preferences";
 import { pageBodySx } from "../components/common/layout";
 import { PageHeader } from "../components/common/PageHeader";
+import { ThemePicker } from "../components/common/ThemePicker";
 import { notify } from "../utils/notify";
 
 const Section = ({ title, description, children }: { title: string; description: string; children: ReactNode }) => (
@@ -31,7 +32,7 @@ const Feature = ({ on, label }: { on: boolean; label: string }) => (
 );
 
 export const SettingsView = () => {
-    const { server, network, themeMode, toggleThemeMode } = useApp();
+    const { server, network, modeChoice, setModeChoice } = useApp();
     const fileInput = useRef<HTMLInputElement>(null);
 
     const importFile = async (file: File | undefined) => {
@@ -54,7 +55,7 @@ export const SettingsView = () => {
         <>
             <PageHeader title="Settings" />
             <Box sx={pageBodySx}>
-                <Box sx={{ maxWidth: 760 }}>
+                <Box sx={{ maxWidth: 1000 }}>
                     <Section
                         title="Hedera account"
                         description="Transactions are signed on the server, so keys never reach the browser. Reading is free and uses the public mirror node; anything that costs HBAR asks you to accept first."
@@ -91,15 +92,23 @@ export const SettingsView = () => {
                     </Section>
                     <Divider />
 
-                    <Section title="Appearance" description="Saved in this browser.">
+                    <Section title="Appearance" description="Pick a theme and a colour mode. Saved in this browser.">
+                        <Typography variant="overline" color="text.secondary" component="div" sx={{ mb: 1 }}>
+                            Theme
+                        </Typography>
+                        <ThemePicker />
+                        <Typography variant="overline" color="text.secondary" component="div" sx={{ mt: 2.5, mb: 1 }}>
+                            Colour mode
+                        </Typography>
                         <ToggleButtonGroup
                             exclusive
                             size="small"
-                            value={themeMode}
-                            onChange={(_e, value) => value && value !== themeMode && toggleThemeMode()}
+                            value={modeChoice}
+                            onChange={(_e, value) => value && setModeChoice(value)}
                         >
                             <ToggleButton value="light">Light</ToggleButton>
                             <ToggleButton value="dark">Dark</ToggleButton>
+                            <ToggleButton value="system">System</ToggleButton>
                         </ToggleButtonGroup>
                     </Section>
                     <Divider />

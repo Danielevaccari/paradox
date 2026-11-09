@@ -96,7 +96,7 @@ export const AppDataGrid = <R extends GridValidRowModel>({ sx, slots, ...props }
                 minHeight: 0,
                 border: 0,
                 borderRadius: 0,
-                fontSize: "0.875rem",
+                fontSize: "0.8125rem",
                 fontVariantNumeric: "tabular-nums",
                 "--DataGrid-containerBackground": (theme) => theme.palette.background.default,
                 "--DataGrid-t-header-background-base": (theme) => theme.palette.background.default,
@@ -122,7 +122,13 @@ export const AppDataGrid = <R extends GridValidRowModel>({ sx, slots, ...props }
                 "& .MuiDataGrid-columnHeaders": { borderBottom: 1, borderColor: "divider" },
                 "& .MuiDataGrid-columnHeader, & .MuiDataGrid-cell": { px: { xs: 1.5, sm: 2 } },
                 "& .MuiDataGrid-columnSeparator": { display: "none" },
-                "& .MuiDataGrid-columnHeaderTitle": { fontWeight: 600, fontSize: "0.75rem", color: "text.secondary" },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: 600,
+                    fontSize: "0.6875rem",
+                    color: "text.secondary",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                },
                 "& .MuiDataGrid-cell": { display: "flex", alignItems: "center", borderColor: "divider" },
                 "& .MuiDataGrid-cell--textRight": { justifyContent: "flex-end" },
                 "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within":

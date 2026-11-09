@@ -18,8 +18,7 @@ export const PageHeader = ({ title, hint, actions }: Props) => (
             minHeight: 52,
             alignItems: "center",
             justifyContent: "space-between",
-            borderBottom: 1,
-            borderColor: "divider",
+            borderBottom: (theme) => theme.custom.headerRule,
             flexShrink: 0,
         }}
     >

@@ -10,7 +10,7 @@ export const ChatDrawer = ({ open, onClose }: Props) => (
         open={open}
         onClose={onClose}
         ModalProps={{ keepMounted: true }}
-        slotProps={{ paper: { sx: { width: { xs: "100%", sm: 400 } } } }}
+        slotProps={{ paper: { sx: { width: { xs: "100%", sm: 400 }, bgcolor: "background.paper" } } }}
     >
         <ChatPanel onClose={onClose} />
     </Drawer>

@@ -12,12 +12,28 @@ import {
     useMediaQuery,
     useTheme,
 } from "@mui/material";
+import type { Monaco } from "@monaco-editor/react";
 import { lazy, Suspense, useState } from "react";
 import { LIMITS, TYPICAL_FEE_HBAR } from "../../../shared/api";
 import { serverApi } from "../../api/serverApi";
+import { useApp } from "../../app/appContext";
 import { usePaidAction } from "../../app/paidActionContext";
+import { editorColors } from "../../theme/theme";
+import type { ThemeId } from "../../theme/themeIds";
 import { byteLength } from "../../utils/format";
 import { notify } from "../../utils/notify";
+
+/** Registers the editor theme that matches the current app theme and returns its name. */
+const defineEditorTheme = (monaco: Monaco, themeId: ThemeId, mode: "light" | "dark") => {
+    const name = `paradox-${themeId}-${mode}`;
+    monaco.editor.defineTheme(name, {
+        base: mode === "dark" ? "vs-dark" : "vs",
+        inherit: true,
+        rules: [],
+        colors: editorColors(themeId, mode),
+    });
+    return name;
+};
 
 // Monaco is large: load it only when the dialog opens on a desktop-sized screen.
 const MonacoEditor = lazy(() => import("@monaco-editor/react"));
@@ -39,6 +55,7 @@ type Props = {
 };
 
 export const ComposeMessageDialog = ({ open, topicId, onClose, onSent }: Props) => {
+    const { themeId } = useApp();
     const confirmPaid = usePaidAction();
     const theme = useTheme();
     const compact = useMediaQuery(theme.breakpoints.down("sm"));
@@ -118,7 +135,8 @@ export const ComposeMessageDialog = ({ open, topicId, onClose, onSent }: Props) 
                             height="55vh"
                             language={language}
                             value={value}
-                            theme={theme.palette.mode === "dark" ? "vs-dark" : "light"}
+                            beforeMount={(monaco) => defineEditorTheme(monaco, themeId, theme.palette.mode)}
+                            theme={`paradox-${themeId}-${theme.palette.mode}`}
                             onChange={(next) => setValue(next ?? "")}
                             options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, wordWrap: "on", tabSize: 2 }}
                         />

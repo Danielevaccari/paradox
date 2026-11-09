@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 
 /**
  * The Paradox mark: a Penrose triangle, an impossible loop of three beams. The shapes are the same as
@@ -22,28 +22,40 @@ const POLYGONS: ReadonlyArray<{ tone: 0 | 1 | 2; points: string }> = [
     { tone: 2, points: "9.25,56.25 19.75,56.25 14.5,47.16 4,47.16" },
 ];
 
-const TONES = ["#a9c0ff", "#5b82f2", "#2f55c9"] as const;
-
-export const LogoMark = ({ size = 28 }: { size?: number }) => (
-    <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Paradox" style={{ display: "block", flexShrink: 0 }}>
-        {POLYGONS.map((polygon, index) => (
-            <polygon
-                key={index}
-                fill={TONES[polygon.tone]}
-                stroke={TONES[polygon.tone]}
-                strokeWidth={0.35}
-                strokeLinejoin="round"
-                points={polygon.points}
-            />
-        ))}
-    </svg>
-);
+/** The mark takes its three tones from the theme's accent colour. */
+export const LogoMark = ({ size = 28 }: { size?: number }) => {
+    const { primary } = useTheme().palette;
+    const tones = [primary.light, primary.main, primary.dark] as const;
+    return (
+        <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Paradox" style={{ display: "block", flexShrink: 0 }}>
+            {POLYGONS.map((polygon, index) => (
+                <polygon
+                    key={index}
+                    fill={tones[polygon.tone]}
+                    stroke={tones[polygon.tone]}
+                    strokeWidth={0.35}
+                    strokeLinejoin="round"
+                    points={polygon.points}
+                />
+            ))}
+        </svg>
+    );
+};
 
 /** Icon and wordmark side by side. */
 export const Logo = ({ size = 28 }: { size?: number }) => (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.primary" }}>
         <LogoMark size={size} />
-        <Typography component="span" sx={{ fontWeight: 700, fontSize: size * 0.68, letterSpacing: "-0.02em", lineHeight: 1 }}>
+        <Typography
+            component="span"
+            sx={{
+                fontFamily: (theme) => theme.typography.h1.fontFamily,
+                fontWeight: 700,
+                fontSize: size * 0.68,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
+            }}
+        >
             Paradox
         </Typography>
     </Box>

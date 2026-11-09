@@ -24,6 +24,7 @@ import { Link, useLocation } from "react-router";
 import { HEDERA_NETWORKS, type HederaNetwork } from "../../../shared/api";
 import { useApp } from "../../app/appContext";
 import { Logo } from "./Logo";
+import { ThemeMenu } from "./ThemeMenu";
 
 const NAV_ITEMS = [
     { to: "/", label: "Topics", icon: <ForumOutlined />, isActive: (path: string) => path === "/" || path.startsWith("/topics") },
@@ -105,7 +106,8 @@ export const NavContent = ({ onNavigate, onOpenChat }: Props) => {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <ThemeMenu />
                 <Tooltip title={themeMode === "dark" ? "Light mode" : "Dark mode"}>
                     <IconButton onClick={toggleThemeMode} aria-label="Toggle colour mode" size="medium">
                         {themeMode === "dark" ? <LightModeOutlined fontSize="small" /> : <DarkModeOutlined fontSize="small" />}

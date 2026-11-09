@@ -52,7 +52,7 @@ export const AccountsView = () => {
                 sx={{ px: { xs: 1.5, sm: 2 }, py: 1, borderBottom: 1, borderColor: "divider", flexShrink: 0 }}
             >
                 <TextField
-                    placeholder={effectiveId ?? "Account ID, e.g. 0.0.12345"}
+                    placeholder={effectiveId ?? "Account ID"}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onKeyDown={(event) => event.key === "Enter" && search()}

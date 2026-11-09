@@ -1,4 +1,5 @@
 import { HEDERA_NETWORKS, type HederaNetwork } from "../../shared/api";
+import { DEFAULT_THEME_ID, isThemeId, type ModeChoice, type ThemeId } from "../theme/themeIds";
 import { isEntityId } from "../utils/format";
 
 /** Browser-only preferences in localStorage. Nothing secret is ever stored here. */
@@ -33,6 +34,7 @@ const readJson = <T>(key: string, fallback: T): T => {
 // Keys kept compatible with the previous version of the app, so saved topics survive the update.
 const NETWORK_KEY = "hederaNetworkInUse";
 const THEME_KEY = "paradox.themeMode";
+const THEME_ID_KEY = "paradox.themeId";
 const FONT_SIZE_KEY = "paradox.messageFontSize";
 const TX_TYPE_KEY = "paradox.transactionType";
 const topicsKey = (network: HederaNetwork) => `${network}_savedTopicIds`;
@@ -44,11 +46,18 @@ export const preferences = {
     },
     setNetwork: (network: HederaNetwork) => write(NETWORK_KEY, network),
 
-    getThemeMode(): ThemeMode | null {
+    /** Light, dark, or "system" (follow the operating system, the default). */
+    getModeChoice(): ModeChoice {
         const value = read(THEME_KEY);
-        return value === "light" || value === "dark" ? value : null;
+        return value === "light" || value === "dark" ? value : "system";
     },
-    setThemeMode: (mode: ThemeMode) => write(THEME_KEY, mode),
+    setModeChoice: (choice: ModeChoice) => write(THEME_KEY, choice),
+
+    getThemeId(): ThemeId {
+        const value = read(THEME_ID_KEY);
+        return isThemeId(value) ? value : DEFAULT_THEME_ID;
+    },
+    setThemeId: (id: ThemeId) => write(THEME_ID_KEY, id),
 
     getMessageFontSize() {
         const value = Number(read(FONT_SIZE_KEY));
@@ -71,7 +80,8 @@ export const preferences = {
             version: 2,
             network,
             savedTopicIds: preferences.getSavedTopicIds(network),
-            themeMode: preferences.getThemeMode(),
+            themeMode: preferences.getModeChoice(),
+            themeId: preferences.getThemeId(),
             topicMessageFontSize: preferences.getMessageFontSize(),
         };
         const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");

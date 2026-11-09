@@ -83,14 +83,14 @@ export const TopicsView = () => {
     const layout: ListLayout = !desktop ? "narrow" : selectedId ? "split" : "wide";
 
     const controls = (
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "0 1 auto" } }}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: { xs: "1 1 100%", sm: "1 1 auto" }, minWidth: 0 }}>
             <TextField
-                placeholder="Add topic by ID, e.g. 0.0.12345"
+                placeholder="Topic ID, e.g. 0.0.12345"
                 value={lookup}
                 onChange={(event) => setLookup(event.target.value)}
                 onKeyDown={(event) => event.key === "Enter" && addTopic()}
                 slotProps={{ htmlInput: { "aria-label": "Topic ID" } }}
-                sx={{ flex: 1, minWidth: 0, width: { sm: 260 } }}
+                sx={{ flex: 1, minWidth: 0, maxWidth: { sm: 320 } }}
             />
             <Button variant="outlined" onClick={addTopic} disabled={!lookup.trim()}>
                 Add

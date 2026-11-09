@@ -6,14 +6,16 @@ import type { HederaNetwork } from "../../shared/api";
 import { fetchServerConfig } from "../api/serverApi";
 import { PaidActionProvider } from "../components/common/PaidActionProvider";
 import { createAppTheme } from "../theme/theme";
+import type { ModeChoice, ThemeId } from "../theme/themeIds";
 import { errorMessage } from "../utils/format";
 import { AppContext, type AppContextValue, type ServerStatus } from "./appContext";
 import { preferences, type ThemeMode } from "./preferences";
 
 export const AppProviders = ({ children }: { children: ReactNode }) => {
     const prefersDark = useMediaQuery("(prefers-color-scheme: dark)", { noSsr: true });
-    const [storedTheme, setStoredTheme] = useState<ThemeMode | null>(() => preferences.getThemeMode());
-    const themeMode: ThemeMode = storedTheme ?? (prefersDark ? "dark" : "light");
+    const [modeChoice, setModeChoiceState] = useState<ModeChoice>(() => preferences.getModeChoice());
+    const [themeId, setThemeIdState] = useState<ThemeId>(() => preferences.getThemeId());
+    const themeMode: ThemeMode = modeChoice === "system" ? (prefersDark ? "dark" : "light") : modeChoice;
 
     const [storedNetwork, setStoredNetwork] = useState<HederaNetwork | null>(() => preferences.getNetwork());
     const [server, setServer] = useState<ServerStatus>({ state: "loading" });
@@ -39,11 +41,17 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
         setStoredNetwork(next);
     }, []);
 
-    const toggleThemeMode = useCallback(() => {
-        const next: ThemeMode = themeMode === "dark" ? "light" : "dark";
-        preferences.setThemeMode(next);
-        setStoredTheme(next);
-    }, [themeMode]);
+    const setModeChoice = useCallback((choice: ModeChoice) => {
+        preferences.setModeChoice(choice);
+        setModeChoiceState(choice);
+    }, []);
+
+    const setThemeId = useCallback((id: ThemeId) => {
+        preferences.setThemeId(id);
+        setThemeIdState(id);
+    }, []);
+
+    const toggleThemeMode = useCallback(() => setModeChoice(themeMode === "dark" ? "light" : "dark"), [themeMode, setModeChoice]);
 
     const writeBlockedReason = useMemo(() => {
         if (server.state === "loading") {
@@ -61,7 +69,7 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
         return null;
     }, [server, network]);
 
-    const theme = useMemo(() => createAppTheme(themeMode), [themeMode]);
+    const theme = useMemo(() => createAppTheme(themeId, themeMode), [themeId, themeMode]);
 
     useEffect(() => {
         document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme.palette.background.default);
@@ -72,13 +80,29 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
             network,
             setNetwork,
             themeMode,
+            modeChoice,
+            setModeChoice,
             toggleThemeMode,
+            themeId,
+            setThemeId,
             server,
             serverConfig,
             canWrite: writeBlockedReason === null,
             writeBlockedReason,
         }),
-        [network, setNetwork, themeMode, toggleThemeMode, server, serverConfig, writeBlockedReason],
+        [
+            network,
+            setNetwork,
+            themeMode,
+            modeChoice,
+            setModeChoice,
+            toggleThemeMode,
+            themeId,
+            setThemeId,
+            server,
+            serverConfig,
+            writeBlockedReason,
+        ],
     );
 
     return (

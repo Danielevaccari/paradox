@@ -41,7 +41,7 @@ React 19, TypeScript 6.0 (pinned; typescript-eslint does not support TS 7 yet), 
 ## Conventions
 - Use MUI `sx` and theme tokens (`src/theme/theme.ts`), never hard-coded colours, so light and dark mode both work.
 - Every view must work down to 320px width with no horizontal page scroll. Hide secondary table columns below `md`.
-- Design is minimal and flat: system fonts, neutral greys plus one accent (`src/theme/theme.ts`), 1px dividers, no cards or shadows, radius 4. Pages use all the space (no page padding or max width) and scroll only their own content: grid rows, message lists. Tabular data uses `AppDataGrid` (MUI X Data Grid; pass view controls through `slotProps.toolbar.start`). Topics are a list plus a detail pane (`TopicList`, `TopicDetail`) at `/` and `/topics/:id`.
+- Design is minimal and theme-driven. Themes live in `src/theme/theme.ts` (`THEMES`: paper, clean, forest, graphite, each with light and dark); the user picks one (`useApp().themeId`, saved in preferences). Components must only use theme tokens (`palette`, `theme.custom`, `typography`), never hard-coded colours or fonts, so every theme works. Adding a theme means adding an id to `themeIds.ts` and an entry to `THEMES`. Pages use all the space (no page padding or max width) and scroll only their own content: grid rows, message lists. Tabular data uses `AppDataGrid` (MUI X Data Grid; pass view controls through `slotProps.toolbar.start`). Topics are a list plus a detail pane (`TopicList`, `TopicDetail`) at `/` and `/topics/:id`.
 - Load data with `useAsyncData`. Don't call setState synchronously in effects (react-hooks 7 flags it).
 - Component files export only components, so fast refresh keeps working.
 - Show user-facing messages with `notify` (notistack).

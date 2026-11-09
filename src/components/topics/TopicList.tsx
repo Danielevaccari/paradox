@@ -41,7 +41,7 @@ export const TopicList = ({ rows, loading, selectedId, layout, onSelect, toolbar
                         layout === "wide"
                             ? `Created ${formatDate(topic?.created_timestamp)}`
                             : row.summary?.lastMessageAt
-                              ? `Last message ${formatRelative(row.summary.lastMessageAt)}`
+                              ? formatRelative(row.summary.lastMessageAt)
                               : "No messages yet";
                     return (
                         <Box sx={{ minWidth: 0, lineHeight: 1.4 }}>

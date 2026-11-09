@@ -23,7 +23,18 @@ Create Hedera topics, submit and read messages, look up accounts and browse tran
 - **Data grids:** topics and transactions use [MUI X Data Grid](https://mui.com/x/react-data-grid/) (MIT), with virtualized rows, sorting, search and CSV export. Only the rows scroll.
 - **Accounts and transactions:** balance, staking and expiry details, and transaction history with readable types, a details dialog (every transfer, plus a HashScan link) and "load older" paging.
 - **Any network, safely:** browse mainnet, testnet or previewnet read-only. Writes only happen on the network the server is configured for, which is testnet by default.
-- **Minimal, responsive design:** flat and quiet, light and dark (follows the OS), using the full screen, from wide desktops down to 320px phones.
+- **Themes:** four built-in themes, each in light and dark (or following the OS): Paper (matte retro), Clean, Forest and Graphite. Switch from the palette button in the sidebar or in Settings; the choice is remembered per browser.
+- **Minimal, responsive design:** flat and quiet, using the full screen, from wide desktops down to 320px phones.
+
+## Themes
+
+Every theme has a light and a dark variant. Pick one in Settings or from the palette button in the sidebar.
+
+| Paper | Clean |
+|---|---|
+| ![Paper theme](docs/theme-paper.png) | ![Clean theme](docs/theme-clean.png) |
+| **Forest** | **Graphite** |
+| ![Forest theme](docs/theme-forest.png) | ![Graphite theme](docs/theme-graphite.png) |
 
 ## Architecture
 

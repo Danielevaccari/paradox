@@ -152,7 +152,7 @@ export const TopicDetail = ({ topicId, saved, fullScreen, onSave, onRemove, onCl
     };
 
     return (
-        <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
             <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: 1.5, pb: 1.5, borderBottom: 1, borderColor: "divider", flexShrink: 0 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
                     {fullScreen && (
